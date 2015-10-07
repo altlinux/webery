@@ -1,0 +1,361 @@
+<div class="container" ng-controller="ApiDocCtrl">
+	<h2>Git.Alt API v1</h2>
+	<p>The API accepts and returns data in JSON format.</p>
+
+	<uib-accordion close-others="oneAtATime">
+		<uib-accordion-group>
+			<uib-accordion-heading>
+				<div ng-click="toggle_open(0)">
+					<code>{schema}://{host}/api/v1/tasks</code>
+					<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': is_open(0), 'glyphicon-chevron-right': !is_open(0)}"></i>
+				</div>
+			</uib-accordion-heading>
+			<uib-tabset>
+				<uib-tab heading="GET">
+					<br/>
+					<table class="table">
+						<tr>
+							<th>Description</th>
+							<td>Returns a list of tasks.</td>
+						</tr>
+						<tr>
+							<th>Parameters</th>
+							<td>
+								<table class="table table-bordered">
+									<tr>
+										<td><code>state={state}</code></td>
+										<td>shows tasks with specified state</td>
+									</tr>
+									<tr>
+										<td><code>owner={user}</code></td>
+										<td>shows tasks with specified owner</td>
+									</tr>
+									<tr>
+										<td><code>limit={number}</code></td>
+										<td>shows only specified number of retults</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+						<tr>
+							<th>Output example</th>
+							<td>
+								<pre>
+{
+  "data": {
+      "tasks": [
+          {
+            "TaskID": 149239,
+            "Try": 1,
+            "Iter": 1,
+            "Shared": false,
+            "TestOnly": true,
+            "State": "EPERM",
+            "Repo": "sisyphus",
+            "Owner": "legion",
+            "TimeCreate": 1444059021
+          }
+      ]
+  },
+  "status": "success"
+}
+</pre>
+							</td>
+						</tr>
+					</table>
+				</uib-tab>
+				<uib-tab heading="POST">
+					<br/>
+					<table class="table">
+						<tr>
+							<th>Description</th>
+							<td>Creates new task.</td>
+						</tr>
+						<tr>
+							<th>Input example</th>
+							<td>
+								<pre>
+{
+  "TaskID": 149239,
+  "Shared": false,
+  "TestOnly": true,
+  "Repo": "sisyphus",
+  "Owner": "legion"
+}
+</pre>
+							</td>
+						</tr>
+					</table>
+				</uib-tab>
+				<uib-tab heading="DELETE">
+					<br/>
+					Not allowed.
+				</uib-tab>
+			</uib-tabset>
+		</uib-accordion-group>
+		<uib-accordion-group>
+			<uib-accordion-heading>
+				<div ng-click="toggle_open(1)">
+					<code>{schema}://{host}/api/v1/tasks/{taskid}</code>
+					<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': is_open(1), 'glyphicon-chevron-right': !is_open(1)}"></i>
+				</div>
+			</uib-accordion-heading>
+			<uib-tabset>
+				<uib-tab heading="GET">
+					<br/>
+					<table class="table">
+						<tr>
+							<th>Description</th>
+							<td>Returns information about specified task.</td>
+						</tr>
+						<tr>
+							<th>Parameters</th>
+							<td>
+								<table class="table table-bordered">
+									<tr>
+										<td><code>nosubtask=1</code></td>
+										<td>exclude information about subtasks</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+						<tr>
+							<th>Output example</th>
+							<td>
+								<pre>
+{
+  "data": {
+    "task": {
+        "TaskID": 147824,
+        "Try": 1,
+        "Iter": 1,
+        "Shared": false,
+        "TestOnly": true,
+        "State": "TESTED",
+        "Repo": "p7",
+        "Owner": "cas",
+        "TimeCreate": 1444058953
+    },
+    "subtasks": [
+        {
+          "TaskID": 147824,
+          "SubTaskID": 100,
+          "Owner": "cas",
+          "Type": "",
+          "Status": "cancelled",
+          "PkgName": "",
+          "TagName": "",
+          "TagID": "",
+          "TagAuthor": "",
+          "Dir": ""
+        },
+        {
+          "TaskID": 147824,
+          "SubTaskID": 200,
+          "Owner": "cas",
+          "Type": "repo",
+          "Status": "active",
+          "PkgName": "samba-DC",
+          "TagName": "dc/4.2.3-alt0.M70P.1",
+          "TagID": "63f38f86db095e75129bc5e44fa7fc8d63ff995a",
+          "TagAuthor": "cas <cas@example.com>",
+          "Dir": "/people/cas/packages/samba.git"
+        }
+    ],
+    "status": "success"
+}
+</pre>
+							</td>
+						</tr>
+					</table>
+				</uib-tab>
+				<uib-tab heading="POST">
+					<br/>
+					Not allowed.
+				</uib-tab>
+				<uib-tab heading="DELETE">
+					<br/>
+					<table class="table">
+						<tr>
+							<th>Description</th>
+							<td>Removes specified task.</td>
+						</tr>
+						<tr>
+							<th>Output example</th>
+							<td>
+								<pre>
+{
+  "data": "OK",
+  "status": "success"
+}
+</pre>
+					</table>
+			</uib-tabset>
+		</uib-accordion-group>
+		<uib-accordion-group>
+			<uib-accordion-heading>
+				<div ng-click="toggle_open(2)">
+					<code>{schema}://{host}/api/v1/tasks/{taskid}/subtasks</code>
+					<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': is_open(2), 'glyphicon-chevron-right': !is_open(2)}"></i>
+				</div>
+			</uib-accordion-heading>
+			<uib-tabset>
+				<uib-tab heading="GET">
+					<br/>
+					<table class="table">
+						<tr>
+							<th>Description</th>
+							<td>Returns information about specified subtask.</td>
+						</tr>
+						<tr>
+							<th>Output example</th>
+							<td>
+								<pre>
+{
+  "data": [
+  ...
+  ],
+  "status": "success"
+}
+</pre>
+							</td>
+						</tr>
+					</table>
+				</uib-tab>
+				<uib-tab heading="POST">
+					<br/>
+					Not allowed.
+				</uib-tab>
+				<uib-tab heading="DELETE">
+					<br/>
+					Not allowed.
+				</uib-tab>
+			</uib-tabset>
+		</uib-accordion-group>
+		<uib-accordion-group>
+			<uib-accordion-heading>
+				<div ng-click="toggle_open(3)">
+					<code>{schema}://{host}/api/v1/tasks/{taskid}/subtasks/{subtaskid}</code>
+					<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': is_open(3), 'glyphicon-chevron-right': !is_open(3)}"></i>
+				</div>
+			</uib-accordion-heading>
+			<uib-tabset>
+				<uib-tab heading="GET">
+					<br/>
+					<table class="table">
+						<tr>
+							<th>Description</th>
+							<td>Returns information about specified subtask.</td>
+						</tr>
+						<tr>
+							<th>Output example</th>
+							<td>
+								<pre>
+{
+  "data": {
+      "TaskID": 147824,
+      "SubTaskID": 200,
+      "Owner": "cas",
+      "Type": "repo",
+      "Status": "active",
+      "PkgName": "samba-DC",
+      "TagName": "dc/4.2.3-alt0.M70P.1",
+      "TagID": "63f38f86db095e75129bc5e44fa7fc8d63ff995a",
+      "TagAuthor": "cas <cas@example.com>",
+      "Dir": "/people/cas/packages/samba.git"
+    },
+    "status": "success"
+}
+</pre>
+							</td>
+						</tr>
+					</table>
+				</uib-tab>
+				<uib-tab heading="POST">
+					<br/>
+					Not allowed.
+				</uib-tab>
+				<uib-tab heading="DELETE">
+					<br/>
+					Not allowed.
+				</uib-tab>
+			</uib-tabset>
+		</uib-accordion-group>
+		<uib-accordion-group>
+			<uib-accordion-heading>
+				<div ng-click="toggle_open(4)">
+					<code>{schema}://{host}/api/v1/acl/{repo}/packages</code>
+					<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': is_open(4), 'glyphicon-chevron-right': !is_open(4)}"></i>
+				</div>
+			</uib-accordion-heading>
+			<uib-tabset>
+				<uib-tab heading="GET">
+					<br/>
+					<table class="table">
+						<tr>
+							<th>Description</th>
+							<td>Returns list with all packages.</td>
+						</tr>
+					</table>
+				</uib-tab>
+			</uib-tabset>
+		</uib-accordion-group>
+		<uib-accordion-group>
+			<uib-accordion-heading>
+				<div ng-click="toggle_open(5)">
+					<code>{schema}://{host}/api/v1/acl/{repo}/packages/{name}</code>
+					<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': is_open(5), 'glyphicon-chevron-right': !is_open(5)}"></i>
+				</div>
+			</uib-accordion-heading>
+			<uib-tabset>
+				<uib-tab heading="GET">
+					<br/>
+					<table class="table">
+						<tr>
+							<th>Description</th>
+							<td>Shows ACL for specified package.</td>
+						</tr>
+					</table>
+				</uib-tab>
+			</uib-tabset>
+		</uib-accordion-group>
+		<uib-accordion-group>
+			<uib-accordion-heading>
+				<div ng-click="toggle_open(6)">
+					<code>{schema}://{host}/api/v1/acl/{repo}/groups</code>
+					<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': is_open(6), 'glyphicon-chevron-right': !is_open(6)}"></i>
+				</div>
+			</uib-accordion-heading>
+			<uib-tabset>
+				<uib-tab heading="GET">
+					<br/>
+					<table class="table">
+						<tr>
+							<th>Description</th>
+							<td>Returns list with all groups.</td>
+						</tr>
+					</table>
+				</uib-tab>
+			</uib-tabset>
+		</uib-accordion-group>
+		<uib-accordion-group>
+			<uib-accordion-heading>
+				<div ng-click="toggle_open(7)">
+					<code>{schema}://{host}/api/v1/acl/{repo}/groups/{name}</code>
+					<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': is_open(7), 'glyphicon-chevron-right': !is_open(7)}"></i>
+				</div>
+			</uib-accordion-heading>
+			<uib-tabset>
+				<uib-tab heading="GET">
+					<br/>
+					<table class="table">
+						<tr>
+							<th>Description</th>
+							<td>Shows ACL for specified group.</td>
+						</tr>
+					</table>
+				</uib-tab>
+			</uib-tabset>
+		</uib-accordion-group>
+	</uib-accordion>
+</div>

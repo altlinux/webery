@@ -1,0 +1,54 @@
+<div class="container" ng-controller="TaskCtrl">
+	<div class="page-header">
+		<h4>Task #{{ task.TaskID }} for <i>{{ task.Repo }}</i> by <a href="{{ GitAltUrl }}/people/{{ task.Owner }}/packages/?o=age">{{ task.Owner }}</a></h4>
+	</div>
+
+	<dl class="dl-horizontal">
+		<dt>Task status:</dt>
+		<!-- dd><span class="label label-{{ task.label }}">{{ task.State }}</span></dd -->
+		<dd>
+			<span ng-bind-html="task.TestOnly | convertTestonly"></span>
+			<span ng-bind-html="task.Shared | convertShared"></span>
+			<span ng-bind-html="task.State | convertState"></span>
+		</dd>
+
+		<dt ng-show="task.TimeCreate">Created time:</dt>
+		<dd ng-show="task.TimeCreate">{{ task.TimeCreate * 1000 | date:'yyyy-MM-dd HH:mm' }}</dd>
+
+		<dt>Logs of iterations:<dt>
+		<dd>
+			<span ng-repeat="n in task.Tries">
+				<a href="{{ GitAltUrl }}/tasks/{{ task.TaskID }}/logs/events.{{ n }}.1.log">{{ n }}</a><span ng-show="!$last">,</span><span ng-show="$last">.</span>
+			</span>
+			<a href="{{ GitAltUrl }}/tasks/{{ task.TaskID }}/logs/">
+				<small><i class="glyphicon glyphicon-folder-open"></i></small>
+			</a>
+		</dd>
+	</dl>
+
+	<table class="table table-stripedd table-bordered">
+		<tr>
+			<th colspan="6"><h4>Subtasks</h4></th>
+		</tr>
+		<tr>
+			<th>#</th>
+			<th>Source</th>
+			<th colspan="3">Build results</th>
+		</tr>
+		<tr
+			ng-repeat="subtask in subtasks"
+			ng-class="{'disable': !subtask.active}">
+			<td class="col-md-1">{{ subtask.SubTaskID }}</td>
+			<td>
+				<a href="{{ subtask.SourceURL }}">{{ subtask.PkgName }} {{ subtask.TagName }}</a>
+			</td>
+			<td class="col-md-1">
+				<a ng-show="subtask.active && subtask.Built" href="{{ GitAltUrl }}/tasks/{{ task.TaskID }}/build/{{ subtask.SubTaskID }}/i586/log">i586</a>
+			</td>
+			<td class="col-md-1">
+				<a ng-show="subtask.active && subtask.Built" href="{{ GitAltUrl }}/tasks/{{ task.TaskID }}/build/{{ subtask.SubTaskID }}/x86_64/log">x86_64</a>
+			</td>
+		</tr>
+</table>
+
+</div>
