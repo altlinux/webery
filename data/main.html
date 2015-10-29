@@ -4,7 +4,7 @@
 			<form method="POST" class="form">
 				<div class="form-group" ng-class="{'has-error': noResults}">
 					<div class="input-group col-md-12">
-						<input type="text" class="form-control" placeholder="Search for tasks ..."
+						<input type="text" class="form-control" placeholder="Search for tasks ..." focus-item
 							ng-model="asyncSelected"
 							uib-typeahead="result as result.task_id for result in getResults($viewValue)"
 							typeahead-on-select="showResult($item, $model, $label)"

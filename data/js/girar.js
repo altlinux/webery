@@ -68,6 +68,15 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 		return $sce.trustAsHtml(out)
 	};
 })
+.directive('focusItem', function($timeout) {
+	return {
+		link: function(scope, element, attrs) {
+			scope.$watch(attrs.focusItem, function() {
+				element[0].focus();
+			});
+		}
+	};
+})
 .controller('BodyCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
 	$rootScope.GitAltUrl = "//git.altlinux.org";
 }])
