@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -23,38 +24,63 @@ import (
 )
 
 type Keyword struct {
-	Key string
+	Key   string
+	Group string
 }
 
 type SubTask struct {
-	ObjType   string
+	ObjType    string
+	TimeCreate int64
+	Search     []Keyword
+
+	// Common
 	TaskID    int64
 	SubTaskID int64
 	Owner     string
-	Type      string
-	Status    string
-	PkgName   string
-	TagName   string
-	TagID     string
-	TagAuthor string
+
+	// srpm, delete, copy, repo
+	Type string
+
+	// active, cancelled
+	Status string
+
+	// type = srpm, delete, copy
+	Package string
+
+	// type = srpm
+	Srpm string
+
+	// type = copy
+	CopyRepo string
+
+	// type = repo
+	Project   string
 	Dir       string
-	CopyRepo  string
-	TimeCreate int64
-	Search    []Keyword
+	TagID     string
+	TagName   string
+	TagAuthor string
+
+	// ???
+	PkgName string
 }
 
 type Task struct {
 	ObjType    string
-	TaskID     int64
-	Try        int64
-	Iter       int64
-	Shared     bool
-	TestOnly   bool
-	State      string
-	Repo       string
-	Owner      string
 	TimeCreate int64
 	Search     []Keyword
+
+	TaskID  int64
+	Try     int64
+	Iter    int64
+	State   string
+	Repo    string
+	Owner   string
+	Aborted string
+
+	// Flags
+	Shared   bool
+	Swift    bool
+	TestOnly bool
 }
 
 func (s *Server) apiListTaskHandler(w *HTTPResponse, r *http.Request, p *url.Values) {
@@ -239,8 +265,8 @@ func (s *Server) apiCreateTaskHandler(w *HTTPResponse, r *http.Request, p *url.V
 	task.TimeCreate = time.Now().Unix()
 
 	task.Search = make([]Keyword, 0)
-	task.Search = append(task.Search, Keyword{fmt.Sprint(task.TaskID)})
-	task.Search = append(task.Search, Keyword{task.Repo})
+	task.Search = append(task.Search, Keyword{fmt.Sprint(task.TaskID),"taskid"})
+	task.Search = append(task.Search, Keyword{task.Repo,"repo"})
 
 	st := s.DB.NewStorage()
 	defer st.Close()
@@ -269,11 +295,13 @@ func (s *Server) apiUpdateTaskHandler(w *HTTPResponse, r *http.Request, p *url.V
 
 	type updateTask struct {
 		TaskID   int64
+		Aborted  *string
+		State    *string
 		Shared   *bool
+		Swift    *bool
 		TestOnly *bool
 		Try      *int64
 		Iter     *int64
-		State    *string
 	}
 
 	var data updateTask
@@ -284,12 +312,20 @@ func (s *Server) apiUpdateTaskHandler(w *HTTPResponse, r *http.Request, p *url.V
 
 	changeSet := bson.M{}
 
+	if data.Swift != nil {
+		changeSet["swift"] = *data.Swift
+	}
+
 	if data.Shared != nil {
 		changeSet["shared"] = *data.Shared
 	}
 
 	if data.TestOnly != nil {
 		changeSet["testonly"] = *data.TestOnly
+	}
+
+	if data.Aborted != nil {
+		changeSet["aborted"] = strings.ToLower(*data.Aborted)
 	}
 
 	if data.State != nil {
@@ -359,6 +395,11 @@ func (s *Server) apiDeleteTaskHandler(w *HTTPResponse, r *http.Request, p *url.V
 		} else {
 			s.notFoundHandler(w, r, p)
 		}
+		return
+	}
+
+	if err := st.Coll("subtasks").Remove(query); err != nil {
+		s.errorResponse(w, httpStatusError(err), "%+v", err)
 		return
 	}
 
@@ -447,6 +488,7 @@ func (s *Server) apiCreateSubTaskHandler(w *HTTPResponse, r *http.Request, p *ur
 	}
 
 	data.ObjType = "subtask"
+	data.Status = "active"
 	data.TaskID = misc.ToInt64(p.Get("task"))
 
 	if data.TaskID <= 0 {
@@ -457,14 +499,12 @@ func (s *Server) apiCreateSubTaskHandler(w *HTTPResponse, r *http.Request, p *ur
 	data.TimeCreate = time.Now().Unix()
 	data.Search = make([]Keyword, 0)
 
-	if data.Status != "cancelled" {
-		if len(data.Owner) > 0 {
-			data.Search = append(data.Search, Keyword{data.Owner})
-		}
+	if len(data.Owner) > 0 {
+		data.Search = append(data.Search, Keyword{data.Owner,"owner"})
+	}
 
-		if len(data.PkgName) > 0 {
-			data.Search = append(data.Search, Keyword{data.PkgName})
-		}
+	if len(data.PkgName) > 0 {
+		data.Search = append(data.Search, Keyword{data.PkgName,"pkgname"})
 	}
 
 	st := s.DB.NewStorage()
@@ -496,9 +536,23 @@ func (s *Server) apiUpdateSubtaskHandler(w *HTTPResponse, r *http.Request, p *ur
 		TaskID    int64
 		SubTaskID int64
 		Status    *string
+		Type      *string
+		Owner     *string
+
+		Dir       *string
+		TagName   *string
+		TagID     *string
+		TagAuthor *string
+
+		CopyRepo *string
+		Package  *string
+
+		Srpm    *string
+		PkgName *string
 	}
 
 	var data updateSubTask
+
 	if err = json.Unmarshal(msg, &data); err != nil {
 		s.errorResponse(w, http.StatusBadRequest, "Invalid JSON: %s", err)
 		return
@@ -506,23 +560,80 @@ func (s *Server) apiUpdateSubtaskHandler(w *HTTPResponse, r *http.Request, p *ur
 
 	changeSet := bson.M{}
 
-	if data.Status != nil {
-		changeSet["status"] = *data.Status
+	setIfNotNil := func(t string, s *string) {
+		if s != nil {
+			changeSet[t] = *s
+		}
 	}
+
+	setIfNotNil("status", data.Status)
+	setIfNotNil("type", data.Type)
+	setIfNotNil("owner", data.Owner)
+	setIfNotNil("dir", data.Dir)
+	setIfNotNil("tagname", data.TagName)
+	setIfNotNil("tagid", data.TagID)
+	setIfNotNil("tagauthor", data.TagAuthor)
+	setIfNotNil("copyrepo", data.CopyRepo)
+	setIfNotNil("package", data.Package)
+	setIfNotNil("srpm", data.Srpm)
+	setIfNotNil("pkgname", data.PkgName)
 
 	if len(changeSet) == 0 {
 		s.errorResponse(w, http.StatusBadRequest, "More fields required")
 		return
 	}
 
-	err = st.Coll("tasks").Update(bson.M{
-			"taskid":    misc.ToInt64(p.Get("task")),
-			"subtaskid": misc.ToInt64(p.Get("subtask")),
-		}, bson.M{
-			"$set": changeSet,
-		})
+	changeKeys := make([]Keyword, 0)
+	changeGroups := make([]string, 0)
 
-	if err != nil {
+	addIfNotEmpty := func(t string, s *string) {
+		if s == nil {
+			if len(*s) > 0 {
+				changeKeys = append(changeKeys, Keyword{*s, t})
+			}
+			changeGroups = append(changeGroups, t)
+		}
+	}
+
+	if data.Dir != nil && len(*data.Dir) > 0 {
+		project := strings.TrimSuffix(filepath.Base(*data.Dir), ".git")
+		addIfNotEmpty("project", &project)
+	}
+	addIfNotEmpty("pkgname", data.PkgName)
+	addIfNotEmpty("owner", data.Owner)
+	addIfNotEmpty("tagname", data.TagName)
+	addIfNotEmpty("package", data.Package)
+	addIfNotEmpty("srpm", data.Srpm)
+
+	// Search condition
+	search := bson.M{
+		"taskid":    misc.ToInt64(p.Get("task")),
+		"subtaskid": misc.ToInt64(p.Get("subtask")),
+	}
+
+	change := bson.M{}
+	change["$set"] = changeSet
+
+	if len(changeKeys) > 0 {
+		change["$addToSet"] = bson.M{"search": changeKeys}
+
+		removeKeywords := bson.M{
+			"$pull": bson.M{
+				"search": bson.M{
+					"group": bson.M{
+						"$in": changeGroups,
+					},
+				},
+			},
+		}
+
+		if err := st.Coll("subtasks").Update(search, removeKeywords); err != nil {
+			s.errorResponse(w, httpStatusError(err), "%+v", err)
+			return
+		}
+	}
+
+	if err = st.Coll("subtasks").Update(search, change); err != nil {
 		s.errorResponse(w, httpStatusError(err), "%+v", err)
 		return
 	}
