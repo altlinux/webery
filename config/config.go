@@ -89,19 +89,21 @@ func (c *Config) SetDefaults() {
 var cfgGlobal *Config
 
 func GetConfig() *Config {
+	if cfgGlobal == nil {
+		panic("Config not initialized")
+	}
 	return cfgGlobal
 }
 
 func NewConfig(filename string) (*Config, error) {
-	cfg := GetConfig()
-	if cfg != nil {
-		return cfg, nil
-	}
-
-	cfg = &Config{}
+	cfg := &Config{}
 	cfg.SetDefaults()
 
 	_, err := toml.DecodeFile(filename, cfg)
+
+	if err == nil {
+		cfgGlobal = cfg
+	}
 
 	return cfg, err
 }
