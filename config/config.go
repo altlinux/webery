@@ -8,6 +8,7 @@
 package config
 
 import (
+	"github.com/BurntSushi/toml"
 	log "github.com/Sirupsen/logrus"
 
 	"strings"
@@ -52,9 +53,11 @@ type ConfigMongo struct {
 }
 
 type ConfigBuilder struct {
-	TaskStates []string
-	Repos      []string
-	Arches     []string
+	TaskStates    []string
+	SubTaskStates []string
+	SubTaskTypes  []string
+	Repos         []string
+	Arches        []string
 }
 
 type Config struct {
@@ -81,4 +84,24 @@ func (c *Config) SetDefaults() {
 	c.Mongo.Database = "girar"
 	c.Mongo.Direct = false
 	c.Mongo.PoolLimit = 128
+}
+
+var cfgGlobal *Config
+
+func GetConfig() *Config {
+	return cfgGlobal
+}
+
+func NewConfig(filename string) (*Config, error) {
+	cfg := GetConfig()
+	if cfg != nil {
+		return cfg, nil
+	}
+
+	cfg = &Config{}
+	cfg.SetDefaults()
+
+	_, err := toml.DecodeFile(filename, cfg)
+
+	return cfg, err
 }

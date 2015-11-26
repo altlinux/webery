@@ -12,22 +12,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"gopkg.in/mgo.v2/bson"
-
+	"github.com/altlinux/webery/model/acl"
 	"github.com/altlinux/webery/storage"
 )
-
-type ACLPerson struct {
-	Type   string `json:"type"`
-	Name   string `json:"name"`
-	Leader bool   `json:"leader"`
-}
-
-type ACL struct {
-	Repo  string      `json:"repo"`
-	Name  string      `json:"name"`
-	Allow []ACLPerson `json:"allow"`
-}
 
 func (s *Server) apiListAclPackagesHandler(w *HTTPResponse, r *http.Request, p *url.Values) {
 	st := s.DB.NewStorage()
@@ -36,20 +23,19 @@ func (s *Server) apiListAclPackagesHandler(w *HTTPResponse, r *http.Request, p *
 	s.beginResponse(w, http.StatusOK)
 	w.Write([]byte(`[`))
 
-	iter := st.Coll("acl_packages").
-		Find(bson.M{"repo": p.Get("repo")}).
+	iter := acl.ListPackagesByRepo(st, p.Get("repo")).
 		Sort("name").
 		Iter()
 
 	delim := false
-	var acl ACL
+	var rec acl.ACL
 
-	for iter.Next(&acl) {
+	for iter.Next(&rec) {
 		if !s.connIsAlive(w) {
 			return
 		}
 
-		msg, err := json.Marshal(acl)
+		msg, err := json.Marshal(rec)
 		if err != nil {
 			// FIXME legion: log failure
 			return
@@ -74,14 +60,9 @@ func (s *Server) apiGetAclPackagesHandler(w *HTTPResponse, r *http.Request, p *u
 	st := s.DB.NewStorage()
 	defer st.Close()
 
-	query := st.Coll("acl_packages").
-		Find(bson.M{
-			"repo": p.Get("repo"),
-			"name": p.Get("name"),
-		})
+	res, err := acl.GetPackageACL(st, p.Get("repo"), p.Get("name"))
 
-	var res ACL
-	if err := query.One(&res); err != nil {
+	if err != nil {
 		if err != storage.ErrNotFound {
 			s.errorResponse(w, httpStatusError(err), "%+v", err)
 		} else {
@@ -100,20 +81,19 @@ func (s *Server) apiListAclGroupsHandler(w *HTTPResponse, r *http.Request, p *ur
 	s.beginResponse(w, http.StatusOK)
 	w.Write([]byte(`[`))
 
-	iter := st.Coll("acl_groups").
-		Find(bson.M{"repo": p.Get("repo")}).
+	iter := acl.ListGroupsByRepo(st, p.Get("repo")).
 		Sort("name").
 		Iter()
 
 	delim := false
-	var acl ACL
+	var rec acl.ACL
 
-	for iter.Next(&acl) {
+	for iter.Next(&rec) {
 		if !s.connIsAlive(w) {
 			return
 		}
 
-		msg, err := json.Marshal(acl)
+		msg, err := json.Marshal(rec)
 		if err != nil {
 			// FIXME legion: log failure
 			return
@@ -135,12 +115,12 @@ func (s *Server) apiListAclGroupsHandler(w *HTTPResponse, r *http.Request, p *ur
 }
 
 func (s *Server) apiGetAclGroupsHandler(w *HTTPResponse, r *http.Request, p *url.Values) {
-	var res ACL
+	var res *acl.ACL
 
 	if p.Get("name") == "nobody" || p.Get("name") == "everybody" {
 		res.Name = p.Get("name")
 		res.Repo = p.Get("repo")
-		res.Allow = make([]ACLPerson, 0)
+		res.Members = make([]acl.Member, 0)
 		s.successResponse(w, res)
 		return
 	}
@@ -148,13 +128,9 @@ func (s *Server) apiGetAclGroupsHandler(w *HTTPResponse, r *http.Request, p *url
 	st := s.DB.NewStorage()
 	defer st.Close()
 
-	query := st.Coll("acl_groups").
-		Find(bson.M{
-			"repo": p.Get("repo"),
-			"name": p.Get("name"),
-		})
+	res, err := acl.GetGroupACL(st, p.Get("repo"), p.Get("name"))
 
-	if err := query.One(&res); err != nil {
+	if err != nil {
 		if err != storage.ErrNotFound {
 			s.errorResponse(w, httpStatusError(err), "%+v", err)
 		} else {

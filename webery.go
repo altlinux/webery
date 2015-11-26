@@ -20,11 +20,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/BurntSushi/toml"
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/altlinux/pidfile-go"
 	"github.com/altlinux/logfile-go"
+	"github.com/altlinux/pidfile-go"
 
 	"github.com/altlinux/webery/config"
 	"github.com/altlinux/webery/logger"
@@ -71,9 +70,9 @@ type Server struct {
 	lastConnID int64
 	connsCount int64
 
-	Cfg   config.Config
-	Log   *logger.ServerLogger
-	DB    *storage.MongoService
+	Cfg *config.Config
+	Log *logger.ServerLogger
+	DB  *storage.MongoService
 }
 
 func (s *Server) newConnTrack(r *http.Request) ConnTrack {
@@ -192,14 +191,14 @@ func (s *Server) Run() error {
 		httpHandler{
 			Regexp:        regexp.MustCompile("^/api/v1/tasks/(?P<task>[0-9]+)/subtasks/(?P<subtask>[0-9]+)/?$"),
 			LimitConns:    true,
-			GETHandler:    s.apiGetSubtaskHandler,
-			POSTHandler:   s.apiUpdateSubtaskHandler,
-			DELETEHandler: s.apiDeleteSubtaskHandler,
+			GETHandler:    s.apiGetSubTaskHandler,
+			POSTHandler:   s.apiUpdateSubTaskHandler,
+			DELETEHandler: s.apiDeleteSubTaskHandler,
 		},
 		httpHandler{
 			Regexp:        regexp.MustCompile("^/api/v1/tasks/(?P<task>[0-9]+)/subtasks/?$"),
 			LimitConns:    true,
-			GETHandler:    s.apiListSubtaskHandler,
+			GETHandler:    s.apiListSubTaskHandler,
 			POSTHandler:   s.apiCreateSubTaskHandler,
 			DELETEHandler: s.notAllowedHandler,
 		},
@@ -349,10 +348,8 @@ func main() {
 		*configFile = "/etc/webery.cfg"
 	}
 
-	cfg := config.Config{}
-	cfg.SetDefaults()
-
-	if _, err := toml.DecodeFile(*configFile, &cfg); err != nil {
+	cfg, err := config.NewConfig(*configFile)
+	if err != nil {
 		log.Fatal(err)
 	}
 

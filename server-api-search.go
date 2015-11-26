@@ -11,9 +11,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"gopkg.in/mgo.v2/bson"
-
 	"github.com/altlinux/webery/misc"
+	"github.com/altlinux/webery/model/search"
 )
 
 var searchCollections []string = []string{"tasks", "subtasks"}
@@ -49,15 +48,7 @@ func (s *Server) apiSearchHandler(w *HTTPResponse, r *http.Request, p *url.Value
 			break
 		}
 
-		query := st.Coll(name).Find(bson.M{
-			"search.key": bson.M{"$regex": "^"+prefix},
-		})
-
-		if num > 0 {
-			query = query.Limit(num)
-		}
-
-		iter := query.Iter()
+		iter := search.FindPrefix(st, name, prefix, num)
 
 		var doc interface{}
 		for iter.Next(&doc) {

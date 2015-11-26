@@ -9,8 +9,8 @@ package storage
 
 import (
 	"expvar"
-	"runtime"
-	"strings"
+	//	"runtime"
+	//	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -26,18 +26,19 @@ var (
 type mongoDBLogger struct{}
 
 func (l *mongoDBLogger) Output(calldepth int, s string) error {
-	_, file, line, ok := runtime.Caller(calldepth)
-	if !ok {
-		file = "???"
-		line = 0
-	}
+	/*
+		_, file, line, ok := runtime.Caller(calldepth)
+		if !ok {
+			file = "???"
+			line = 0
+		}
 
-	if idx := strings.LastIndex(file, "/"); idx != -1 {
-		file = file[idx+1:]
-	}
+		if idx := strings.LastIndex(file, "/"); idx != -1 {
+			file = file[idx+1:]
+		}
 
-	log.Infof("mongodb: %s:%d: %s", file, line, s)
-
+		log.Infof("mongodb: %s:%d: %s", file, line, s)
+	*/
 	return nil
 }
 
@@ -104,7 +105,6 @@ func NewMongoService(conf config.ConfigMongo) *MongoService {
 	return ss
 }
 
-
 func (st *MongoStorage) Initialize() {
 	index := mgo.Index{
 		Key:        []string{"taskid"},
@@ -129,7 +129,7 @@ func (st *MongoStorage) Initialize() {
 	}
 
 	index = mgo.Index{
-		Key:        []string{"taskid","subtaskid"},
+		Key:        []string{"taskid", "subtaskid"},
 		Unique:     true,
 		DropDups:   true,
 		Background: false,
@@ -151,7 +151,7 @@ func (st *MongoStorage) Initialize() {
 	}
 
 	index = mgo.Index{
-		Key:        []string{"repo","name"},
+		Key:        []string{"repo", "name"},
 		Unique:     true,
 		DropDups:   true,
 		Background: false,
@@ -162,7 +162,7 @@ func (st *MongoStorage) Initialize() {
 	}
 
 	index = mgo.Index{
-		Key:        []string{"repo","name"},
+		Key:        []string{"repo", "name"},
 		Unique:     true,
 		DropDups:   true,
 		Background: false,

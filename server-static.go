@@ -8,17 +8,17 @@
 package main
 
 import (
+	"io"
 	"net/http"
 	"net/url"
-	"io"
 	"os"
 	"strings"
 )
 
 func httpStatusError(err error) int {
-//	if _, ok := err.(KhpError); ok {
-//		return http.StatusServiceUnavailable
-//	}
+	//	if _, ok := err.(KhpError); ok {
+	//		return http.StatusServiceUnavailable
+	//	}
 	return http.StatusInternalServerError
 }
 
