@@ -245,6 +245,13 @@ func (s *Server) Run() error {
 			DELETEHandler: s.notAllowedHandler,
 		},
 		httpHandler{
+			Regexp:        regexp.MustCompile("^/api/v1/acl/?$"),
+			LimitConns:    true,
+			GETHandler:    s.apiListAclReposHandler,
+			POSTHandler:   s.notAllowedHandler,
+			DELETEHandler: s.notAllowedHandler,
+		},
+		httpHandler{
 			Regexp:        regexp.MustCompile("^/(?P<path>[A-Za-z0-9/_-]+[.][a-z]+)$"),
 			LimitConns:    true,
 			GETHandler:    s.staticHandler,

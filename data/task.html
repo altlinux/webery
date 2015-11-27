@@ -1,26 +1,26 @@
 <div class="container" ng-controller="TaskCtrl">
 	<div class="page-header">
-		<h4>Task #{{ task.TaskID }} for <i>{{ task.Repo }}</i> by <a href="{{ GitAltUrl }}/people/{{ task.Owner }}/packages/?o=age">{{ task.Owner }}</a></h4>
+		<h4>Task #{{ task.taskid }} for <i>{{ task.repo }}</i> by <a href="{{ GitAltUrl }}/people/{{ task.owner }}/packages/?o=age">{{ task.owner }}</a></h4>
 	</div>
 
 	<dl class="dl-horizontal">
 		<dt>Task status:</dt>
 		<!-- dd><span class="label label-{{ task.label }}">{{ task.State }}</span></dd -->
 		<dd>
-			<span ng-bind-html="task.TestOnly | convertTestonly"></span>
-			<span ng-bind-html="task.Shared | convertShared"></span>
-			<span ng-bind-html="task.State | convertState"></span>
+			<span ng-bind-html="task.testonly | convertTestonly"></span>
+			<span ng-bind-html="task.shared | convertShared"></span>
+			<span ng-bind-html="task.state | convertState"></span>
 		</dd>
 
-		<dt ng-show="task.TimeCreate">Created time:</dt>
-		<dd ng-show="task.TimeCreate">{{ task.TimeCreate * 1000 | date:'yyyy-MM-dd HH:mm' }}</dd>
+		<dt ng-show="task.timecreate">Created time:</dt>
+		<dd ng-show="task.timecreate">{{ task.timecreate * 1000 | date:'yyyy-MM-dd HH:mm' }}</dd>
 
 		<dt>Logs of iterations:<dt>
 		<dd>
-			<span ng-repeat="n in task.Tries">
-				<a href="{{ GitAltUrl }}/tasks/{{ task.TaskID }}/logs/events.{{ n }}.1.log">{{ n }}</a><span ng-show="!$last">,</span><span ng-show="$last">.</span>
+			<span ng-repeat="n in task.tries">
+				<a href="{{ GitAltUrl }}/tasks/{{ task.taskid }}/logs/events.{{ n }}.1.log">{{ n }}</a><span ng-show="!$last">,</span><span ng-show="$last">.</span>
 			</span>
-			<a href="{{ GitAltUrl }}/tasks/{{ task.TaskID }}/logs/">
+			<a href="{{ GitAltUrl }}/tasks/{{ task.taskid }}/logs/">
 				<small><i class="glyphicon glyphicon-folder-open"></i></small>
 			</a>
 		</dd>
@@ -38,15 +38,15 @@
 		<tr
 			ng-repeat="subtask in subtasks"
 			ng-class="{'disable': !subtask.active}">
-			<td class="col-md-1">{{ subtask.SubTaskID }}</td>
+			<td class="col-md-1">{{ subtask.subtaskid }}</td>
 			<td>
-				<a href="{{ subtask.SourceURL }}">{{ subtask.PkgName }} {{ subtask.TagName }}</a>
+				<a href="{{ subtask.SourceURL }}">{{ subtask.pkgname }} {{ subtask.tagname }}</a>
 			</td>
 			<td class="col-md-1">
-				<a ng-show="subtask.active && subtask.Built" href="{{ GitAltUrl }}/tasks/{{ task.TaskID }}/build/{{ subtask.SubTaskID }}/i586/log">i586</a>
+				<a ng-show="subtask.active && subtask.Built" href="{{ GitAltUrl }}/tasks/{{ task.taskid }}/build/{{ subtask.subtaskid }}/i586/log">i586</a>
 			</td>
 			<td class="col-md-1">
-				<a ng-show="subtask.active && subtask.Built" href="{{ GitAltUrl }}/tasks/{{ task.TaskID }}/build/{{ subtask.SubTaskID }}/x86_64/log">x86_64</a>
+				<a ng-show="subtask.active && subtask.Built" href="{{ GitAltUrl }}/tasks/{{ task.Taskid }}/build/{{ subtask.subtaskid }}/x86_64/log">x86_64</a>
 			</td>
 		</tr>
 </table>

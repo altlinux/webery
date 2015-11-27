@@ -7,6 +7,18 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 				controller: 'TaskCtrl',
 //				controllerAs: 'task'
 			})
+			.when('/acl/:repo/packages/:name', {
+				templateUrl: '/acl-info.html',
+				controller: 'AclPackageInfoCtrl',
+			})
+			.when('/acl/:repo/groups/:name', {
+				templateUrl: '/acl-info.html',
+				controller: 'AclGroupInfoCtrl',
+			})
+			.when('/acl', {
+				templateUrl: '/acl.html',
+				controller: 'AclCtrl',
+			})
 			.when('/suggestion', {
 				controller: 'SuggestionCtrl',
 			})
@@ -167,32 +179,136 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 			$scope.subtasks = response.data.data.subtasks;
 
 			$scope.subtasks.map(function(item) {
-				item.active = (item.Status === 'active');
-				switch (item.Type) {
+				item.active = (item.status === 'active');
+				switch (item.type) {
 					case "delete":
 					case "copy":
 						item.Built = false;
 						item.SourceURL = "" +
 							$rootScope.GitAltUrl + "/gears/" +
-							item.PkgName.charAt(0) + "/..git?p=" +
-							item.PkgName + ".git;a=shortlog;h=refs/heads/" +
-							$scope.task.Repo;
-							break;
+							item.pkgname.charAt(0) + "/..git?p=" +
+							item.pkgname + ".git;a=shortlog;h=refs/heads/" +
+							$scope.task.repo;
+						break;
 					default:
 						item.Built = true;
 						item.SourceURL = "" +
 							$rootScope.GitAltUrl + "/tasks/" +
-							item.TaskID + "/gears/" +
-							item.SubTaskID + "/git";
+							item.taskid + "/gears/" +
+							item.subtaskid + "/git";
 				}
 			});
 
-			$scope.task.Tries = [];
-			for (var i = $scope.task.Try; i; i--) {
-				$scope.task.Tries.push(i);
+			$scope.task.tries = [];
+			for (var i = $scope.task.try; i; i--) {
+				$scope.task.tries.push(i);
 			}
 		});
 	};
 
 	getTask($routeParams.taskId);
-}]);
+}])
+.controller('AclCtrl', ['$routeParams', '$scope', '$rootScope', '$http', function($routeParams, $scope, $rootScope, $http) {
+	this.name = "AclCtrl";
+	this.params = $routeParams;
+
+	$scope.cur_repo = "";
+	$scope.repos = [];
+	$scope.packages = [];
+
+	$scope.toggleRepo = function(repo) {
+		$scope.cur_repo = repo;
+	};
+
+	getRepos = function() {
+		return $http.get('/api/v1/acl/', {
+			params: {}
+		}).then(function(response) {
+			$scope.repos = response.data.data;
+		});
+	};
+
+	getPackages = function() {
+		if ($scope.cur_repo === "") {
+			return;
+		}
+		return $http.get('/api/v1/acl/' + $scope.cur_repo + '/packages', {
+			params: {}
+		}).then(function(response) {
+			$scope.packages = response.data.data;
+		});
+	};
+
+	getRepos();
+}])
+.controller('AclPackageInfoCtrl', ['$routeParams', '$scope', '$rootScope', '$http', function($routeParams, $scope, $rootScope, $http) {
+	this.name = "AclPackageInfoCtrl";
+	this.params = $routeParams;
+
+	$scope.Name     = "";
+	$scope.Repo     = "";
+	$scope.Members  = [];
+	$scope.Found    = false;
+	$scope.NotFound = false;
+
+	getACL = function() {
+		return $http.get('/api/v1/acl/' + $routeParams.repo + '/packages/' + $routeParams.name, {
+			params: {}
+		}).then(
+			function(response) {
+				$scope.Found   = true;
+				$scope.Name    = $routeParams.name;
+				$scope.Repo    = $routeParams.repo;
+				$scope.Members = response.data.data.members;
+				$scope.Members.map(function(item) {
+					item.include = "acl-" + item.type + ".html";
+				});
+			},
+			function (response) {
+				$scope.NotFound = true;
+				$scope.Name     = $routeParams.name;
+				$scope.Repo     = $routeParams.repo;
+			}
+		);
+	};
+
+	getACL();
+}])
+.controller('AclGroupInfoCtrl', ['$routeParams', '$scope', '$rootScope', '$http', function($routeParams, $scope, $rootScope, $http) {
+	this.name = "AclGroupInfoCtrl";
+	this.params = $routeParams;
+
+	$scope.Name     = "";
+	$scope.Repo     = "";
+	$scope.Members  = [];
+	$scope.Found    = false;
+	$scope.NotFound = false;
+
+	getACL = function() {
+		return $http.get('/api/v1/acl/' + $routeParams.repo + '/groups/' + $routeParams.name, {
+			params: {}
+		}).then(
+			function(response) {
+				$scope.Found   = true;
+				$scope.Name    = $routeParams.name;
+				$scope.Repo    = $routeParams.repo;
+				$scope.Members = response.data.data.members;
+				$scope.Members.map(function(item) {
+					item.include = "acl-" + item.type + ".html";
+				});
+			},
+			function (response) {
+				$scope.NotFound = true;
+				$scope.Name     = $routeParams.name;
+				$scope.Repo     = $routeParams.repo;
+			}
+		);
+	};
+
+	getACL();
+
+	if ($routeParams.name === "everybody" || $routeParams.name === "nobody") {
+		$scope.MemberInclude = "acl-info-" + $routeParams.name + ".html";
+	}
+}])
+;

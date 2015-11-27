@@ -1,0 +1,13 @@
+<div class="container" ng-controller="AclCtrl">
+	<div class="btn-group" uib-dropdown dropdown-append-to-body>
+		<button id="btn-append-to-body" type="button" class="btn btn-primary" uib-dropdown-toggle>
+			Repository {{cur_repo}} <span class="caret"></span>
+		</button>
+		<ul class="uib-dropdown-menu" role="menu" aria-labelledby="btn-append-to-body">
+			<li role="menuitem" ng-repeat="choice in repos">
+				<a href="#" ng-click="toggleRepo(choice)">{{choice}}</a>
+			</li>
+		</ul>
+	</div>
+
+</div>

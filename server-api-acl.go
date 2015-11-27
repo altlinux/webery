@@ -12,9 +12,15 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/altlinux/webery/config"
 	"github.com/altlinux/webery/model/acl"
 	"github.com/altlinux/webery/storage"
 )
+
+func (s *Server) apiListAclReposHandler(w *HTTPResponse, r *http.Request, p *url.Values) {
+	cfg := config.GetConfig()
+	s.successResponse(w, cfg.Builder.Repos)
+}
 
 func (s *Server) apiListAclPackagesHandler(w *HTTPResponse, r *http.Request, p *url.Values) {
 	st := s.DB.NewStorage()
@@ -118,6 +124,7 @@ func (s *Server) apiGetAclGroupsHandler(w *HTTPResponse, r *http.Request, p *url
 	var res *acl.ACL
 
 	if p.Get("name") == "nobody" || p.Get("name") == "everybody" {
+		res = &acl.ACL{}
 		res.Name = p.Get("name")
 		res.Repo = p.Get("repo")
 		res.Members = make([]acl.Member, 0)
