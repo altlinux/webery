@@ -1,13 +1,38 @@
-<div class="container" ng-controller="AclCtrl">
-	<div class="btn-group" uib-dropdown dropdown-append-to-body>
-		<button id="btn-append-to-body" type="button" class="btn btn-primary" uib-dropdown-toggle>
-			Repository {{cur_repo}} <span class="caret"></span>
-		</button>
-		<ul class="uib-dropdown-menu" role="menu" aria-labelledby="btn-append-to-body">
-			<li role="menuitem" ng-repeat="choice in repos">
-				<a href="#" ng-click="toggleRepo(choice)">{{choice}}</a>
-			</li>
-		</ul>
+<div class="container" ng-controller="AclSearchCtrl">
+	<div class="row">
+		<div class="col-md-12">
+			<form method="POST" class="form">
+				<div class="form-group" ng-class="{'has-error': noResults}">
+					<div class="input-group col-md-12">
+						<div class="input-group-btn">
+							<div class="btn-group" uib-dropdown dropdown-append-to-body>
+								<button id="btn-append-to-body" type="button" class="btn btn-primary" uib-dropdown-toggle>
+									{{Repo}} <span class="caret"></span>
+								</button>
+								<ul class="uib-dropdown-menu" role="menu" aria-labelledby="btn-append-to-body">
+									<li role="menuitem" ng-repeat="choice in Repos">
+										<a href="#" ng-click="toggleRepo(choice)">{{choice}}</a>
+									</li>
+								</ul>
+							</div>
+						</div>
+						<input type="text" class="form-control" placeholder="Search for packages" focus-item
+							ng-model="asyncSelected"
+							uib-typeahead="result as result.task_id for result in getResults($viewValue)"
+							typeahead-on-select="showResult($item, $model, $label)"
+							typeahead-popup-template-url="acl-search-suggestion.html"
+							typeahead-loading="loadingLocations"
+							typeahead-no-results="noResults"
+						/>
+						<div class="input-group-addon" ng-show="loadingLocations">
+							<span class="glyphicon glyphicon-refresh"></span>
+						</div>
+						<div class="input-group-addon">
+							<span class="glyphicon glyphicon-search"></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
 	</div>
-
 </div>

@@ -182,6 +182,13 @@ func (s *Server) Run() error {
 
 	handlers := []httpHandler{
 		httpHandler{
+			Regexp:        regexp.MustCompile("^/api/v1/search/acl/?$"),
+			LimitConns:    true,
+			GETHandler:    s.apiAclSearchHandler,
+			POSTHandler:   s.notAllowedHandler,
+			DELETEHandler: s.notAllowedHandler,
+		},
+		httpHandler{
 			Regexp:        regexp.MustCompile("^/api/v1/search/?$"),
 			LimitConns:    true,
 			GETHandler:    s.apiSearchHandler,

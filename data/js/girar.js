@@ -228,17 +228,6 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 		});
 	};
 
-	getPackages = function() {
-		if ($scope.cur_repo === "") {
-			return;
-		}
-		return $http.get('/api/v1/acl/' + $scope.cur_repo + '/packages', {
-			params: {}
-		}).then(function(response) {
-			$scope.packages = response.data.data;
-		});
-	};
-
 	getRepos();
 }])
 .controller('AclPackageInfoCtrl', ['$routeParams', '$scope', '$rootScope', '$http', function($routeParams, $scope, $rootScope, $http) {
@@ -310,5 +299,62 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 	if ($routeParams.name === "everybody" || $routeParams.name === "nobody") {
 		$scope.MemberInclude = "acl-info-" + $routeParams.name + ".html";
 	}
+}])
+.controller('AclSearchCtrl', ['$scope', '$location', '$http', function($scope, $location, $http) {
+	$scope.Repo = "sisyphus";
+	$scope.Prefix = "";
+	$scope.Repos = [];
+	$scope.Packages = [];
+
+	$scope.toggleRepo = function(repo) {
+		$scope.Repo = repo;
+
+		if ($scope.Prefix.length != 0) {
+			$scope.getResults($scope.Prefix);
+		}
+	};
+
+	$scope.getResults = function(val) {
+		$scope.Prefix = val.toLowerCase();
+
+		return $http.get('/api/v1/search/acl', {
+			params: {
+				prefix: $scope.Prefix,
+				repo: $scope.Repo,
+				limit: 10
+			}
+		}).then(function(response) {
+			if (!response.data.data) {
+				return [];
+			}
+
+			var re  = new RegExp('^(' + response.data.data.Query + ')', 'i');
+
+			return response.data.data.Result.map(function(item) {
+				item.url = "/acl/" + $scope.Repo + "/packages/" + item.name;
+				item.namematch = item.name.replace(re, '<span class="searchmatch">$1</span>');
+				item.members.map(function(item) {
+					item.include = "acl-" + item.type + ".html";
+				});
+				return item;
+			}).sort(function (a, b) {
+				return a.name.localeCompare(b.name);
+			});
+		});
+	};
+
+	$scope.showResult = function(item, model, label) {
+		$location.url(item.url);
+	};
+
+	getRepos = function() {
+		return $http.get('/api/v1/acl/', {
+			params: {}
+		}).then(function(response) {
+			$scope.Repos = response.data.data;
+		});
+	};
+
+	getRepos();
 }])
 ;

@@ -13,7 +13,9 @@ import (
 	"net/url"
 
 	"github.com/altlinux/webery/config"
+	"github.com/altlinux/webery/misc"
 	"github.com/altlinux/webery/model/acl"
+	"github.com/altlinux/webery/model/search"
 	"github.com/altlinux/webery/storage"
 )
 
@@ -143,6 +145,72 @@ func (s *Server) apiGetAclGroupsHandler(w *HTTPResponse, r *http.Request, p *url
 		} else {
 			s.notFoundHandler(w, r, p)
 		}
+		return
+	}
+
+	s.successResponse(w, res)
+}
+
+func (s *Server) apiAclSearchHandler(w *HTTPResponse, r *http.Request, p *url.Values) {
+	prefix := p.Get("prefix")
+	repo := p.Get("repo")
+	limit := misc.ToInt32(p.Get("limit"))
+
+	if len(prefix) == 0 {
+		s.beginResponse(w, http.StatusOK)
+		w.Write([]byte(`[]`))
+		s.endResponseSuccess(w)
+		return
+	}
+
+	st := s.DB.NewStorage()
+	defer st.Close()
+
+	var doc acl.ACL
+
+	num := int(limit)
+	res := &searchResult{
+		Query:  prefix,
+		Result: make([]interface{}, 0),
+	}
+
+	iter := search.FindKey(st, "acl_packages", prefix, 0)
+	for iter.Next(&doc) {
+		if !s.connIsAlive(w) {
+			return
+		}
+		if num == 0 {
+			break
+		}
+		if doc.Repo != repo {
+			continue
+		}
+		res.Result = append(res.Result, doc)
+		num--
+	}
+
+	if err := iter.Close(); err != nil {
+		s.errorResponse(w, httpStatusError(err), "error iterating: %+v", err)
+		return
+	}
+
+	iter = search.FindPrefix(st, "acl_packages", prefix, 0)
+	for iter.Next(&doc) {
+		if !s.connIsAlive(w) {
+			return
+		}
+		if num == 0 {
+			break
+		}
+		if doc.Repo != repo || doc.Name == prefix {
+			continue
+		}
+		res.Result = append(res.Result, doc)
+		num--
+	}
+
+	if err := iter.Close(); err != nil {
+		s.errorResponse(w, httpStatusError(err), "error iterating: %+v", err)
 		return
 	}
 

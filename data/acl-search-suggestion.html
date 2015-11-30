@@ -1,0 +1,23 @@
+<ul class="dropdown-menu col-md-11" role="listbox"
+	ng-show="isOpen() && !moveInProgress"
+	ng-style="{top: position().top+'px', left: position().left+'px'}"
+	style="display: block;" aria-hidden="{{!isOpen()}}">
+	<li role="option" id="{{::match.id}}"
+		ng-repeat="match in matches track by $index"
+		ng-class="{active: isActive($index) }"
+		ng-mouseenter="selectActive($index)"
+		ng-click="selectMatch($index)">
+		<a href="#" class="snippet">
+			<div class="row">
+				<div class="col-md-4" style="overflow:hidden; text-overflow: ellipsis;">
+					<span ng-bind-html="match.model.namematch"></span>
+				</div>
+				<div class="col-md-8" style="overflow:hidden; text-overflow: ellipsis;">
+					<span ng-repeat="member in match.model.members">
+						<span ng-include="member.include"></span>
+					</span>
+				</div>
+			</div>
+		</a>
+	</li>
+</ul>

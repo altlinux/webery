@@ -56,6 +56,18 @@ func (k *Keywords) Keywords() []Keyword {
 	return k.keywords
 }
 
+func FindKey(st *storage.MongoStorage, collname string, prefix string, limit int) *mgo.Iter {
+	query := st.Coll(collname).Find(bson.M{
+		"search.key": prefix,
+	})
+
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	return query.Iter()
+}
+
 func FindPrefix(st *storage.MongoStorage, collname string, prefix string, limit int) *mgo.Iter {
 	query := st.Coll(collname).Find(bson.M{
 		"search.key": bson.M{
