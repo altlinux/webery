@@ -7,16 +7,20 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 				controller: 'TaskCtrl',
 //				controllerAs: 'task'
 			})
-			.when('/acl/:repo/packages/:name', {
-				templateUrl: '/acl-info.html',
-				controller: 'AclPackageInfoCtrl',
+			.when('/acl/:repo/:type/:name', {
+				templateUrl: '/acl-show.html',
+				controller: 'AclInfoCtrl',
 			})
-			.when('/acl/:repo/groups/:name', {
-				templateUrl: '/acl-info.html',
-				controller: 'AclGroupInfoCtrl',
+			.when('/acl/:repo/:type', {
+				templateUrl: '/acl-packages.html',
+				controller: 'AclInfoCtrl',
+			})
+			.when('/acl-nobody/:repo', {
+				templateUrl: '/acl-packages-nobody.html',
+				controller: 'AclNobodyCtrl',
 			})
 			.when('/acl', {
-				templateUrl: '/acl.html',
+				templateUrl: '/acl-packages.html',
 				controller: 'AclCtrl',
 			})
 			.when('/suggestion', {
@@ -209,9 +213,6 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 	getTask($routeParams.taskId);
 }])
 .controller('AclCtrl', ['$routeParams', '$scope', '$rootScope', '$http', function($routeParams, $scope, $rootScope, $http) {
-	this.name = "AclCtrl";
-	this.params = $routeParams;
-
 	$scope.cur_repo = "";
 	$scope.repos = [];
 	$scope.packages = [];
@@ -230,9 +231,11 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 
 	getRepos();
 }])
-.controller('AclPackageInfoCtrl', ['$routeParams', '$scope', '$rootScope', '$http', function($routeParams, $scope, $rootScope, $http) {
-	this.name = "AclPackageInfoCtrl";
-	this.params = $routeParams;
+.controller('AclInfoCtrl', ['$routeParams', '$scope', '$rootScope', '$http', function($routeParams, $scope, $rootScope, $http) {
+	if ($routeParams.type != "groups" && $routeParams.type != "packages") {
+		alert("Wrong type: " + $routeParams.type);
+		return;
+	}
 
 	$scope.Name     = "";
 	$scope.Repo     = "";
@@ -241,7 +244,7 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 	$scope.NotFound = false;
 
 	getACL = function() {
-		return $http.get('/api/v1/acl/' + $routeParams.repo + '/packages/' + $routeParams.name, {
+		return $http.get('/api/v1/acl/' + $routeParams.repo + '/' + $routeParams.type + '/' + $routeParams.name, {
 			params: {}
 		}).then(
 			function(response) {
@@ -250,40 +253,16 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 				$scope.Repo    = $routeParams.repo;
 				$scope.Members = response.data.data.members;
 				$scope.Members.map(function(item) {
-					item.include = "acl-" + item.type + ".html";
+					item.include = "acl-show-" + item.type + ".html";
 				});
-			},
-			function (response) {
-				$scope.NotFound = true;
-				$scope.Name     = $routeParams.name;
-				$scope.Repo     = $routeParams.repo;
-			}
-		);
-	};
-
-	getACL();
-}])
-.controller('AclGroupInfoCtrl', ['$routeParams', '$scope', '$rootScope', '$http', function($routeParams, $scope, $rootScope, $http) {
-	this.name = "AclGroupInfoCtrl";
-	this.params = $routeParams;
-
-	$scope.Name     = "";
-	$scope.Repo     = "";
-	$scope.Members  = [];
-	$scope.Found    = false;
-	$scope.NotFound = false;
-
-	getACL = function() {
-		return $http.get('/api/v1/acl/' + $routeParams.repo + '/groups/' + $routeParams.name, {
-			params: {}
-		}).then(
-			function(response) {
-				$scope.Found   = true;
-				$scope.Name    = $routeParams.name;
-				$scope.Repo    = $routeParams.repo;
-				$scope.Members = response.data.data.members;
-				$scope.Members.map(function(item) {
-					item.include = "acl-" + item.type + ".html";
+				$scope.Members.sort(function (a, b) {
+					if (a.leader) {
+						return -1;
+					}
+					return (
+						b.type.localeCompare(a.type) ||
+						a.name.localeCompare(b.name)
+					);
 				});
 			},
 			function (response) {
@@ -296,12 +275,15 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 
 	getACL();
 
-	if ($routeParams.name === "everybody" || $routeParams.name === "nobody") {
-		$scope.MemberInclude = "acl-info-" + $routeParams.name + ".html";
+	if ($routeParams.type === "groups") {
+		if ($routeParams.name === "everybody" || $routeParams.name === "nobody") {
+			$scope.MemberInclude = "acl-show-group-" + $routeParams.name + ".html";
+		}
 	}
 }])
-.controller('AclSearchCtrl', ['$scope', '$location', '$http', function($scope, $location, $http) {
-	$scope.Repo = "sisyphus";
+.controller('AclSearchCtrl', ['$routeParams', '$scope', '$location', '$http', function($routeParams, $scope, $location, $http) {
+	$scope.Type = $routeParams.type || "packages";
+	$scope.Repo = $routeParams.repo || "sisyphus";
 	$scope.Prefix = "";
 	$scope.Repos = [];
 	$scope.Packages = [];
@@ -317,10 +299,9 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 	$scope.getResults = function(val) {
 		$scope.Prefix = val.toLowerCase();
 
-		return $http.get('/api/v1/search/acl', {
+		return $http.get('/api/v1/acl/' + $scope.Repo + '/completion/' + $scope.Type, {
 			params: {
 				prefix: $scope.Prefix,
-				repo: $scope.Repo,
 				limit: 10
 			}
 		}).then(function(response) {
@@ -331,10 +312,10 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 			var re  = new RegExp('^(' + response.data.data.Query + ')', 'i');
 
 			return response.data.data.Result.map(function(item) {
-				item.url = "/acl/" + $scope.Repo + "/packages/" + item.name;
+				item.url = "/acl/" + $scope.Repo + "/" + $scope.Type + "/" + item.name;
 				item.namematch = item.name.replace(re, '<span class="searchmatch">$1</span>');
 				item.members.map(function(item) {
-					item.include = "acl-" + item.type + ".html";
+					item.include = "acl-show-" + item.type + ".html";
 				});
 				return item;
 			}).sort(function (a, b) {
@@ -356,5 +337,43 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 	};
 
 	getRepos();
+}])
+.controller('AclNobodyCtrl', ['$routeParams', '$scope', '$rootScope', '$http', function($routeParams, $scope, $rootScope, $http) {
+	$scope.Repo = $routeParams.repo || "sisyphus";
+	$scope.Num      = 0;
+	$scope.Alphabet = {};
+	$scope.Found    = false;
+	$scope.NotFound = false;
+
+	getPackages = function() {
+		return $http.get('/api/v1/acl/' + $scope.Repo + '/search/packages', {
+			params: {
+				member: "nobody"
+			}
+		}).then(
+			function(response) {
+				if (!response.data || !response.data.data || response.data.data.length == 0) {
+					$scope.NotFound = true;
+					return;
+				}
+				$scope.Num = response.data.data.length;
+				$scope.Found = true;
+				response.data.data.map(function(item) {
+					var ch = item.name.charAt(0);
+					if (!$scope.Alphabet.hasOwnProperty(ch)) {
+						$scope.Alphabet[ch] = {};
+						$scope.Alphabet[ch]['char'] = ch;
+						$scope.Alphabet[ch]['packages'] = [];
+					}
+					$scope.Alphabet[ch]['packages'].push(item.name);
+				});
+			},
+			function (response) {
+				$scope.NotFound = true;
+			}
+		);
+	};
+
+	getPackages();
 }])
 ;

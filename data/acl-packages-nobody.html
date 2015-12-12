@@ -1,0 +1,20 @@
+<div class="container">
+	<div class="page-header">
+		<h3>{{Repo}} repository<span ng-show="Found"> ({{Num}} found)</span></h3>
+	</div>
+</div>
+<div class="container" ng-show="Found">
+	<ul>
+	<li ng-repeat="letter in Alphabet">
+		<h4 style="display:inline; font-family:monospace;">{{letter.char}}</h4>&nbsp;&nbsp;&nbsp;
+		<span ng-repeat="name in letter.packages">
+			<a class="linktext" href="/acl/{{Repo}}/packages/{{name}}"><span class="label label-primary">{{name}}</span></a>&nbsp;
+		</span>
+	</li>
+	</ul>
+	<hr/>
+</div>
+<div class="container" ng-show="NotFound">
+	There are no unmaintained packages in this repository.
+	<hr/>
+</div>

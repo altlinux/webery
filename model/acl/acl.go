@@ -17,6 +17,13 @@ import (
 const collection_pkg = "acl_packages"
 const collection_grp = "acl_groups"
 
+type Filter struct {
+	Type   string
+	Repo   string
+	Name   string
+	Member string
+}
+
 type Member struct {
 	Type   string `json:"type"`
 	Name   string `json:"name"`
@@ -61,4 +68,28 @@ func GetGroupACL(st *storage.MongoStorage, repo string, name string) (*ACL, erro
 		One(res)
 
 	return res, err
+}
+
+func Find(st *storage.MongoStorage, filter *Filter) *mgo.Query {
+	search := bson.M{}
+
+	if filter.Name != "" {
+		search["name"] = filter.Name
+	}
+	if filter.Repo != "" {
+		search["repo"] = filter.Repo
+	}
+	if filter.Member != "" {
+		search["members.name"] = filter.Member
+	}
+
+	if filter.Type == "packages" {
+		return st.Coll(collection_pkg).Find(search)
+	}
+
+	if filter.Type == "groups" {
+		return st.Coll(collection_grp).Find(search)
+	}
+
+	return nil
 }

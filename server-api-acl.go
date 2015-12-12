@@ -151,7 +151,8 @@ func (s *Server) apiGetAclGroupsHandler(w *HTTPResponse, r *http.Request, p *url
 	s.successResponse(w, res)
 }
 
-func (s *Server) apiAclSearchHandler(w *HTTPResponse, r *http.Request, p *url.Values) {
+func (s *Server) apiAclCompletionHandler(w *HTTPResponse, r *http.Request, p *url.Values) {
+	stype := p.Get("type")
 	prefix := p.Get("prefix")
 	repo := p.Get("repo")
 	limit := misc.ToInt32(p.Get("limit"))
@@ -174,7 +175,7 @@ func (s *Server) apiAclSearchHandler(w *HTTPResponse, r *http.Request, p *url.Va
 		Result: make([]interface{}, 0),
 	}
 
-	iter := search.FindKey(st, "acl_packages", prefix, 0)
+	iter := search.FindKey(st, "acl_" + stype, prefix, 0)
 	for iter.Next(&doc) {
 		if !s.connIsAlive(w) {
 			return
@@ -194,7 +195,7 @@ func (s *Server) apiAclSearchHandler(w *HTTPResponse, r *http.Request, p *url.Va
 		return
 	}
 
-	iter = search.FindPrefix(st, "acl_packages", prefix, 0)
+	iter = search.FindPrefix(st, "acl_" + stype, prefix, 0)
 	for iter.Next(&doc) {
 		if !s.connIsAlive(w) {
 			return
@@ -215,4 +216,56 @@ func (s *Server) apiAclSearchHandler(w *HTTPResponse, r *http.Request, p *url.Va
 	}
 
 	s.successResponse(w, res)
+}
+
+func (s *Server) apiAclFindHandler(w *HTTPResponse, r *http.Request, p *url.Values) {
+	filter := &acl.Filter{
+		Type:   p.Get("type"),
+		Member: p.Get("member"),
+		Repo:   p.Get("repo"),
+	}
+
+	limit := misc.ToInt32(p.Get("limit"))
+
+	st := s.DB.NewStorage()
+	defer st.Close()
+
+	res := acl.Find(st, filter).Sort("name")
+
+	if limit > 0 {
+		res = res.Limit(int(limit))
+	}
+
+	iter := res.Iter()
+
+	s.beginResponse(w, http.StatusOK)
+	w.Write([]byte(`[`))
+
+	delim := false
+	var rec acl.ACL
+
+	for iter.Next(&rec) {
+		if !s.connIsAlive(w) {
+			return
+		}
+
+		msg, err := json.Marshal(rec)
+		if err != nil {
+			// FIXME legion: log failure
+			return
+		}
+		if delim {
+			w.Write([]byte(`,`))
+		}
+		w.Write(msg)
+		delim = true
+	}
+
+	if err := iter.Close(); err != nil {
+		// FIXME legion: log failure
+		return
+	}
+
+	w.Write([]byte(`]`))
+	s.endResponseSuccess(w)
 }

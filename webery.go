@@ -182,13 +182,6 @@ func (s *Server) Run() error {
 
 	handlers := []httpHandler{
 		httpHandler{
-			Regexp:        regexp.MustCompile("^/api/v1/search/acl/?$"),
-			LimitConns:    true,
-			GETHandler:    s.apiAclSearchHandler,
-			POSTHandler:   s.notAllowedHandler,
-			DELETEHandler: s.notAllowedHandler,
-		},
-		httpHandler{
 			Regexp:        regexp.MustCompile("^/api/v1/search/?$"),
 			LimitConns:    true,
 			GETHandler:    s.apiSearchHandler,
@@ -221,6 +214,20 @@ func (s *Server) Run() error {
 			LimitConns:    true,
 			GETHandler:    s.apiListTaskHandler,
 			POSTHandler:   s.apiCreateTaskHandler,
+			DELETEHandler: s.notAllowedHandler,
+		},
+		httpHandler{
+			Regexp:        regexp.MustCompile("^/api/v1/acl/(?P<repo>[0-9a-z]+)/completion/(?P<type>(groups|packages))/?$"),
+			LimitConns:    true,
+			GETHandler:    s.apiAclCompletionHandler,
+			POSTHandler:   s.notAllowedHandler,
+			DELETEHandler: s.notAllowedHandler,
+		},
+		httpHandler{
+			Regexp:        regexp.MustCompile("^/api/v1/acl/(?P<repo>[0-9a-z]+)/search/(?P<type>(groups|packages))/?$"),
+			LimitConns:    true,
+			GETHandler:    s.apiAclFindHandler,
+			POSTHandler:   s.notAllowedHandler,
 			DELETEHandler: s.notAllowedHandler,
 		},
 		httpHandler{
