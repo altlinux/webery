@@ -177,6 +177,21 @@ func (s *Server) apiCreateTaskHandler(w *HTTPResponse, r *http.Request, p *url.V
 		return
 	}
 
+	if t.TaskID == nil {
+		s.errorResponse(w, http.StatusBadRequest, "taskid: mandatory field is not specified")
+		return
+	}
+
+	if t.Owner == nil {
+		s.errorResponse(w, http.StatusBadRequest, "owner: mandatory field is not specified")
+		return
+	}
+
+	if t.Repo == nil {
+		s.errorResponse(w, http.StatusBadRequest, "repo: mandatory field is not specified")
+		return
+	}
+
 	if err := task.Valid(t); err != nil {
 		s.errorResponse(w, http.StatusBadRequest, "%+v", err)
 		return
@@ -208,6 +223,11 @@ func (s *Server) apiUpdateTaskHandler(w *HTTPResponse, r *http.Request, p *url.V
 
 	if err = json.Unmarshal(msg, &data); err != nil {
 		s.errorResponse(w, http.StatusBadRequest, "Invalid JSON: %s", err)
+		return
+	}
+
+	if err := task.Valid(data); err != nil {
+		s.errorResponse(w, http.StatusBadRequest, "%+v", err)
 		return
 	}
 

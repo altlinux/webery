@@ -87,14 +87,27 @@ func (s *Server) apiCreateSubTaskHandler(w *HTTPResponse, r *http.Request, p *ur
 		return
 	}
 
-	if *data.SubTaskID <= 0 {
-		s.errorResponse(w, http.StatusBadRequest, "Bad SubTaskID")
+	if data.SubTaskID == nil {
+		s.errorResponse(w, http.StatusBadRequest, "subtaskid: mandatory field is not specified")
 		return
 	}
 
-	if *data.TaskID <= 0 {
-		s.errorResponse(w, http.StatusBadRequest, "Bad TaskID")
+	if data.Owner == nil {
+		s.errorResponse(w, http.StatusBadRequest, "owner: mandatory field is not specified")
 		return
+	}
+
+	taskID := misc.ToInt64(p.Get("task"))
+	data.TaskID = &taskID
+
+	if data.Type == nil {
+		s := "unknown"
+		data.Type = &s
+	}
+
+	if data.Status == nil {
+		s := "active"
+		data.Status = &s
 	}
 
 	if err := subtask.Valid(data); err != nil {
@@ -129,6 +142,11 @@ func (s *Server) apiUpdateSubTaskHandler(w *HTTPResponse, r *http.Request, p *ur
 
 	if err = json.Unmarshal(msg, &data); err != nil {
 		s.errorResponse(w, http.StatusBadRequest, "Invalid JSON: %s", err)
+		return
+	}
+
+	if err := subtask.Valid(data); err != nil {
+		s.errorResponse(w, http.StatusBadRequest, "%+v", err)
 		return
 	}
 

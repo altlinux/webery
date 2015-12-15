@@ -43,15 +43,15 @@ type Task struct {
 func Valid(t Task) error {
 	cfg := config.GetConfig()
 
-	if *t.TaskID <= 0 {
+	if t.TaskID != nil && *t.TaskID <= 0 {
 		return fmt.Errorf("Bad TaskID")
 	}
 
-	if !misc.InSliceString(*t.Repo, cfg.Builder.Repos) {
+	if t.Repo != nil && !misc.InSliceString(*t.Repo, cfg.Builder.Repos) {
 		return fmt.Errorf("Unknown repo: %s", t.Repo)
 	}
 
-	if !misc.InSliceString(*t.State, cfg.Builder.TaskStates) {
+	if t.State != nil && !misc.InSliceString(*t.State, cfg.Builder.TaskStates) {
 		return fmt.Errorf("Wrong value for 'status' field")
 	}
 
@@ -71,6 +71,23 @@ func GetTask(st *storage.MongoStorage, ID int64) (t *Task, err error) {
 }
 
 func Create(st *storage.MongoStorage, t Task) error {
+	typeOfTask := reflect.TypeOf(t)
+	valueOfTask := reflect.Indirect(reflect.ValueOf(&t))
+
+	for i := 0; i < typeOfTask.NumField(); i++ {
+		field := typeOfTask.Field(i)
+
+		if field.Tag.Get("field") == "private" {
+			continue
+		}
+
+		value := valueOfTask.Field(i)
+
+		if value.Kind() == reflect.Ptr && value.IsNil() {
+			value.Set(reflect.New(value.Type().Elem()))
+		}
+	}
+
 	kwds := search.NewKeywords()
 	kwds.Append("taskid", fmt.Sprintf("%d", *t.TaskID))
 	kwds.Append("repo", *t.Repo)

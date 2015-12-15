@@ -96,11 +96,28 @@ func GetSubTask(st *storage.MongoStorage, taskID int64, subtaskID int64) (t *Sub
 }
 
 func Create(st *storage.MongoStorage, t SubTask) error {
+	typeOfTask := reflect.TypeOf(t)
+	valueOfTask := reflect.Indirect(reflect.ValueOf(&t))
+
+	for i := 0; i < typeOfTask.NumField(); i++ {
+		field := typeOfTask.Field(i)
+
+		if field.Tag.Get("field") == "private" {
+			continue
+		}
+
+		value := valueOfTask.Field(i)
+
+		if value.Kind() == reflect.Ptr && value.IsNil() {
+			value.Set(reflect.New(value.Type().Elem()))
+		}
+	}
+
 	kwds := search.NewKeywords()
 	kwds.Append("owner", *t.Owner)
 	kwds.Append("pkgname", *t.PkgName)
 
-	if len(*t.Dir) > 0 {
+	if t.Dir != nil && len(*t.Dir) > 0 {
 		project := strings.TrimSuffix(filepath.Base(*t.Dir), ".git")
 		kwds.Append("project", project)
 	}
