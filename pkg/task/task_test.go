@@ -3,7 +3,7 @@ package task
 import (
 	"testing"
 
-//	"gopkg.in/mgo.v2/bson"
+	//	"gopkg.in/mgo.v2/bson"
 
 	"github.com/altlinux/webery/pkg/config"
 	storage "github.com/altlinux/webery/pkg/db/dbtest"
@@ -11,7 +11,9 @@ import (
 
 func TestParse(t *testing.T) {
 	cfg := &config.Config{}
+
 	dbi := storage.NewSession(cfg.Mongo)
+	defer dbi.Close()
 
 	_, err := GetTask(dbi, 149239)
 	if err != nil {

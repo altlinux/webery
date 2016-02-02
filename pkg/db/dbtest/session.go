@@ -1,42 +1,60 @@
 package dbtest
 
 import (
+	"crypto/rand"
 	"fmt"
+	"os"
+
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/dbtest"
 
 	"github.com/altlinux/webery/pkg/config"
 	"github.com/altlinux/webery/pkg/db"
+	"github.com/altlinux/webery/pkg/db/mongo"
 )
 
-type TestHandler struct {
-	Process func() error
-}
-
 type TestSession struct {
-	dbname string
-	Handlers map[string]TestHandler
-}
+	*mgo.Session
 
-func (s *TestSession) Ping() error {
-	return nil
+	dbname string
+	dbdir  string
+	Server dbtest.DBServer
 }
 
 func (s *TestSession) Close() {
+	s.Session.Close()
+	s.Server.Stop()
+	_ = os.RemoveAll(s.dbdir)
 	return
 }
 
 func (s *TestSession) Copy() db.Session {
-	return &TestSession{}
+	new_s := s
+	new_s.Session = s.Session.Copy()
+	return new_s
 }
 
 func (s *TestSession) Coll(name string) (db.Collection, error) {
-	coll := NewCollection(fmt.Sprintf("%s.%s", s.dbname, name))
-	coll.Handlers = s.Handlers
-	return coll, nil
+	return &mongo.MongoCollection{Collection: s.Session.DB("").C(name)}, nil
 }
 
 func NewSession(conf config.ConfigMongo) *TestSession {
-	return &TestSession{
-		dbname:   conf.Database,
-		Handlers: make(map[string]TestHandler),
+	s := &TestSession{}
+	s.dbname = "dbtest"
+
+	b := make([]byte, 32)
+
+	if _, err := rand.Read(b); err != nil {
+		panic(err)
 	}
+
+	s.dbdir = fmt.Sprintf("/tmp/%s-%x", s.dbname, b)
+	if err := os.MkdirAll(s.dbdir, 0777); err != nil {
+		panic(err)
+	}
+
+	s.Server.SetPath(s.dbdir)
+	s.Session = s.Server.Session()
+
+	return s
 }
