@@ -1,12 +1,13 @@
 package task
 
 import (
-	"reflect"
+	"fmt"
+	"time"
 
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/altlinux/webery/pkg/db"
-	"github.com/altlinux/webery/pkg/dbutil"
+	"github.com/altlinux/webery/pkg/jsontype"
 	kwd "github.com/altlinux/webery/pkg/keywords"
 )
 
@@ -15,24 +16,19 @@ var (
 )
 
 type Task struct {
-	ObjType    string        `json:"objtype"`
-	TimeCreate int64         `json:"timecreate"`
-	Search     []kwd.Keyword `json:"search"`
-	TaskID     *int64        `json:"taskid"   webery:"public,keyword"`
-	Try        *int64        `json:"try"      webery:"public"`
-	Iter       *int64        `json:"iter"     webery:"public"`
-	Owner      *string       `json:"owner"    webery:"public"`
-	State      *string       `json:"state"    webery:"public,lowercase"`
-	Repo       *string       `json:"repo"     webery:"public,lowercase,keyword"`
-	Aborted    *string       `json:"aborted"  webery:"public,lowercase"`
-	Shared     *bool         `json:"shared"   webery:"public"`
-	Swift      *bool         `json:"swift"    webery:"public"`
-	TestOnly   *bool         `json:"testonly" webery:"public"`
-}
-
-func (t *Task) getUpdateBSON() ([]bson.M, error) {
-	valueOf := reflect.ValueOf(t)
-	return dbutil.UpdateBSON(valueOf)
+	ObjType    jsontype.BaseString  `json:"-,omitempty"`
+	TimeCreate jsontype.Int64       `json:"-,omitempty"`
+	Search     []kwd.Keyword        `json:"-,omitempty"`
+	TaskID     jsontype.Int64       `json:"taskid,omitempty"`
+	Try        jsontype.Int64       `json:"try,omitempty"`
+	Iter       jsontype.Int64       `json:"iter,omitempty"`
+	Owner      jsontype.LowerString `json:"owner,omitempty"`
+	State      jsontype.LowerString `json:"state,omitempty"`
+	Repo       jsontype.LowerString `json:"repo,omitempty"`
+	Aborted    jsontype.LowerString `json:"aborted,omitempty"`
+	Shared     jsontype.Bool        `json:"shared,omitempty"`
+	Swift      jsontype.Bool        `json:"swift,omitempty"`
+	TestOnly   jsontype.Bool        `json:"testonly,omitempty"`
 }
 
 func GetTask(st db.Session, ID int64) (*Task, error) {
@@ -42,7 +38,39 @@ func GetTask(st db.Session, ID int64) (*Task, error) {
 	}
 
 	t := &Task{}
-	col.Find(bson.M{"taskid": ID}).One(t)
+	if err := col.Find(bson.M{"taskid": ID}).One(t); err != nil {
+		return nil, err
+	}
 
 	return t, nil
+}
+
+func Create(st db.Session, t Task) error {
+	kwds := kwd.NewKeywords()
+
+	if v, ok := t.TaskID.Get(); ok {
+		kwds.Append("taskid", fmt.Sprintf("%d", v))
+	}
+
+	if v, ok := t.Repo.Get(); ok {
+		kwds.Append("repo", v)
+	}
+
+	t.Search = kwds.Keywords()
+	t.ObjType.Set("task")
+	t.TimeCreate.Set(time.Now().Unix())
+
+	col, err := st.Coll(CollName)
+	if err != nil {
+		return err
+	}
+	return col.Insert(t)
+}
+
+func RemoveByID(st db.Session, ID int64) error {
+	col, err := st.Coll(CollName)
+	if err != nil {
+		return err
+	}
+	return col.Remove(bson.M{"taskid": ID})
 }
