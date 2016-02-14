@@ -1,14 +1,16 @@
 package db
 
 import (
-	"errors"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var (
-	ErrNotFound = errors.New("not found")
-	ErrCursor   = errors.New("invalid cursor")
+	ErrNotFound = mgo.ErrNotFound
+	ErrCursor   = mgo.ErrCursor
 )
+
+type QueryDoc bson.M
 
 type Iter interface {
 	All(result interface{}) error
