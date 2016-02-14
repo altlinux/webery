@@ -15,7 +15,7 @@ type Task struct {
 	Bar Int64             `json:",omitempty"`
 	Baz BaseString        `json:",omitempty"`
 	Bax LowerString       `json:",omitempty"`
-	Far []kwd.Keyword     `json:",omitempty" bson:",omitempty"`
+	Far kwd.Keywords      `json:",omitempty"`
 	Xxx *int              `json:",omitempty"`
 	Zzz map[string]string `json:",omitempty" bson:",omitempty"`
 }
@@ -172,12 +172,7 @@ func TestBSON(t *testing.T) {
 		"document with list of keywords": {
 			data: &Task{
 				Foo: *NewBool(true),
-				Far: []kwd.Keyword{
-					kwd.Keyword{
-						Key:   "AAA",
-						Group: "repo",
-					},
-				},
+				Far: kwd.NewKeywords(kwd.Keyword{Key: "AAA", Group: "repo"}),
 			},
 			expected: bson.M{
 				"foo": true,
@@ -191,22 +186,22 @@ func TestBSON(t *testing.T) {
 	for title, test := range testcases {
 		expectOut, err := bson.Marshal(&test.expected)
 		if err != nil {
-			t.Fatalf("Unexpected error: %v", err)
+			t.Fatalf("Unexpected error: %s: %v", title, err)
 		}
 
 		resultOut, err := bson.Marshal(&test.data)
 		if err != nil {
-			t.Fatalf("Unexpected error: %v", err)
+			t.Fatalf("Unexpected error: %s: %v", title, err)
 		}
 
 		resultTask := &Task{}
 		if err := bson.Unmarshal(resultOut, resultTask); err != nil {
-			t.Fatalf("Unexpected error: %v", err)
+			t.Fatalf("Unexpected error: %s: %v", title, err)
 		}
 
 		expectTask := &Task{}
 		if err := bson.Unmarshal(expectOut, expectTask); err != nil {
-			t.Fatalf("Unexpected error: %v", err)
+			t.Fatalf("Unexpected error: %s: %v", title, err)
 		}
 
 		if !reflect.DeepEqual(resultTask, expectTask) {
@@ -217,12 +212,12 @@ func TestBSON(t *testing.T) {
 
 			b0, err := json.Marshal(expectTask)
 			if err != nil {
-				t.Fatalf("Unexpected error: %v", err)
+				t.Fatalf("Unexpected error: %s: %v", title, err)
 			}
 
 			b1, err := json.Marshal(resultTask)
 			if err != nil {
-				t.Fatalf("Unexpected error: %v", err)
+				t.Fatalf("Unexpected error: %s: %v", title, err)
 			}
 
 			t.Logf("expected: %+v\n", string(b0))
@@ -286,12 +281,7 @@ func TestJSON(t *testing.T) {
 		"document with list of keywords": {
 			data: &Task{
 				Foo: *NewBool(true),
-				Far: []kwd.Keyword{
-					kwd.Keyword{
-						Key:   "AAA",
-						Group: "repo",
-					},
-				},
+				Far: kwd.NewKeywords(kwd.Keyword{Key: "AAA", Group: "repo"}),
 			},
 			expected: struct {
 				Foo bool

@@ -2,9 +2,6 @@ package task
 
 import (
 	"fmt"
-	"time"
-
-	"gopkg.in/mgo.v2/bson"
 
 	"github.com/altlinux/webery/pkg/db"
 	"github.com/altlinux/webery/pkg/jsontype"
@@ -18,7 +15,7 @@ var (
 type Task struct {
 	ObjType    jsontype.BaseString  `json:"-,omitempty"`
 	TimeCreate jsontype.Int64       `json:"-,omitempty"`
-	Search     []kwd.Keyword        `json:"-,omitempty"`
+	Search     kwd.Keywords         `json:"-,omitempty"`
 	TaskID     jsontype.Int64       `json:"taskid,omitempty"`
 	Try        jsontype.Int64       `json:"try,omitempty"`
 	Iter       jsontype.Int64       `json:"iter,omitempty"`
@@ -31,46 +28,80 @@ type Task struct {
 	TestOnly   jsontype.Bool        `json:"testonly,omitempty"`
 }
 
-func GetTask(st db.Session, ID int64) (*Task, error) {
-	col, err := st.Coll(CollName)
-	if err != nil {
-		return nil, err
-	}
-
+func New() *Task {
 	t := &Task{}
-	if err := col.Find(bson.M{"taskid": ID}).One(t); err != nil {
-		return nil, err
-	}
 
-	return t, nil
+	t.ObjType.Set("task")
+	t.Search = kwd.NewKeywords()
+
+	return t
 }
 
-func Create(st db.Session, t Task) error {
-	kwds := kwd.NewKeywords()
+func (t Task) GetID() (db.QueryDoc, error) {
+	id := make(db.QueryDoc)
+
+	if tid, ok := t.TaskID.Get(); ok {
+		id["taskid"] = tid
+	} else {
+		return id, fmt.Errorf("TaskID not specified")
+	}
+	return id, nil
+}
+
+func List(st db.Session, query db.QueryDoc) (res db.Query, err error) {
+	col, err := st.Coll(CollName)
+	if err == nil {
+		res = col.Find(query)
+	}
+	return
+}
+
+func Read(st db.Session, id int64) (task *Task, err error) {
+	task = &Task{}
+	query, err := List(st, db.QueryDoc{"taskid": id})
+	if err == nil {
+		query.One(&task)
+	}
+	return
+}
+
+func Write(st db.Session, t *Task) error {
+	col, err := st.Coll(CollName)
+	if err != nil {
+		return err
+	}
+
+	id, err := t.GetID()
+	if err != nil {
+		return err
+	}
+
+	if t.Search == nil {
+		t.Search = kwd.NewKeywords()
+	}
 
 	if v, ok := t.TaskID.Get(); ok {
-		kwds.Append("taskid", fmt.Sprintf("%d", v))
+		t.Search["taskid"] = fmt.Sprintf("%d", v)
 	}
 
 	if v, ok := t.Repo.Get(); ok {
-		kwds.Append("repo", v)
+		t.Search["repo"] = v
 	}
 
-	t.Search = kwds.Keywords()
-	t.ObjType.Set("task")
-	t.TimeCreate.Set(time.Now().Unix())
-
-	col, err := st.Coll(CollName)
-	if err != nil {
-		return err
-	}
-	return col.Insert(t)
+	_, err = col.Upsert(id, t)
+	return err
 }
 
-func RemoveByID(st db.Session, ID int64) error {
+func Delete(st db.Session, t *Task) error {
 	col, err := st.Coll(CollName)
 	if err != nil {
 		return err
 	}
-	return col.Remove(bson.M{"taskid": ID})
+
+	id, err := t.GetID()
+	if err != nil {
+		return err
+	}
+
+	return col.Remove(id)
 }

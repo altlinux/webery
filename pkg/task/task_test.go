@@ -1,8 +1,11 @@
 package task
 
 import (
+	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 
@@ -12,6 +15,35 @@ import (
 	"github.com/altlinux/webery/pkg/db"
 	storage "github.com/altlinux/webery/pkg/db/dbtest"
 )
+
+var (
+	dbi db.Session
+)
+
+func TestMain(m *testing.M) {
+	flag.Parse()
+
+	cfg := &config.Config{}
+
+	dbi = storage.NewSession(cfg.Mongo)
+	defer dbi.Close()
+
+	os.Exit(m.Run())
+}
+
+func makeGoodTask() *Task {
+	goodTask := New()
+
+	goodTask.TaskID.Set(int64(123456))
+	goodTask.Try.Set(int64(0))
+	goodTask.Iter.Set(int64(1))
+	goodTask.State.Set("new")
+	goodTask.Repo.Set("sisyphus")
+	goodTask.Owner.Set("legion")
+	goodTask.TestOnly.Set(true)
+
+	return goodTask
+}
 
 func showTasks(sess db.Session) {
 	coll, err := sess.Coll(CollName)
@@ -50,30 +82,12 @@ func initTasks(sess db.Session) {
 	})
 }
 
-func TestParse(t *testing.T) {
-	cfg := &config.Config{}
-
-	dbi := storage.NewSession(cfg.Mongo)
-	defer dbi.Close()
-
-	initTasks(dbi)
-	showTasks(dbi)
-
-	taskId := int64(149239)
-
-	task, err := GetTask(dbi, taskId)
+func cleanTasks(sess db.Session) {
+	coll, err := sess.Coll(CollName)
 	if err != nil {
-		t.Errorf("Unexpected error: %v", err)
+		panic(err)
 	}
-
-	id, ok := task.TaskID.Get()
-	if !ok {
-		t.Errorf("TaskID not found: %+v", task)
-	}
-
-	if id != taskId {
-		t.Errorf("Wrong task found: %+v", task)
-	}
+	coll.RemoveAll(bson.M{})
 }
 
 func TestCheckExistence(t *testing.T) {
@@ -105,18 +119,33 @@ func TestCheckExistence(t *testing.T) {
 	}
 }
 
-func makeGoodTask() *Task {
-	goodTask := &Task{}
+func TestTaskID(t *testing.T) {
+	goodTask := makeGoodTask()
 
-	goodTask.TaskID.Set(int64(123456))
-	goodTask.Try.Set(int64(0))
-	goodTask.Iter.Set(int64(1))
-	goodTask.State.Set("new")
-	goodTask.Repo.Set("sisyphus")
-	goodTask.Owner.Set("legion")
-	goodTask.TestOnly.Set(true)
+	id, err := goodTask.GetID()
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
 
-	return goodTask
+	expect := bson.M{
+		"taskid": int64(123456),
+	}
+
+	expectOut, err := bson.Marshal(&expect)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	resultOut, err := bson.Marshal(id)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	if !bytes.Equal(expectOut, resultOut) {
+		t.Errorf("Unexpected diff")
+		t.Logf("wanted: %+v", expect)
+		t.Logf("got:    %+v", id)
+	}
 }
 
 func TestParseJSON(t *testing.T) {
@@ -163,17 +192,144 @@ func TestParseJSON(t *testing.T) {
 	}
 
 	for subject, test := range testcases {
-		var task Task
+		task := New()
 
-		if err := json.Unmarshal(test.data, &task); err != nil {
+		if err := json.Unmarshal(test.data, task); err != nil {
 			t.Errorf("Unexpected error: %v", err)
 			continue
 		}
 
-		if !reflect.DeepEqual(test.expected, &task) && !test.expectError {
+		if !reflect.DeepEqual(test.expected, task) && !test.expectError {
 			t.Errorf("unexpected diffs were produced from %s", subject)
 			t.Logf("wanted: %+v", test.expected)
-			t.Logf("got:    %+v", &task)
+			t.Logf("got:    %+v", task)
+		}
+	}
+}
+
+func TestRead(t *testing.T) {
+	initTasks(dbi)
+	//	showTasks(dbi)
+
+	taskId := int64(149239)
+
+	task, err := Read(dbi, taskId)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	id, ok := task.TaskID.Get()
+	if !ok {
+		t.Errorf("TaskID not found: %+v", task)
+	}
+
+	if id != taskId {
+		t.Errorf("Wrong task found: %+v", task)
+	}
+
+	cleanTasks(dbi)
+}
+
+func TestWrite(t *testing.T) {
+	badTask := New()
+	if err := Write(dbi, badTask); err == nil {
+		t.Fatalf("Expected error")
+	}
+
+	goodTask := makeGoodTask()
+
+	taskId, _ := goodTask.TaskID.Get()
+
+	if err := Write(dbi, goodTask); err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	task, err := Read(dbi, taskId)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	id, ok := task.TaskID.Get()
+	if !ok {
+		t.Errorf("TaskID not found: %+v", task)
+	}
+
+	if id != taskId {
+		t.Errorf("Wrong task found: %+v", task)
+	}
+
+	cleanTasks(dbi)
+}
+
+func TestUpdate(t *testing.T) {
+	goodTask := makeGoodTask()
+
+	taskId, _ := goodTask.TaskID.Get()
+
+	if err := Write(dbi, goodTask); err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	goodTask.Search = nil
+	goodTask.Owner.Set("ldv")
+
+	if err := Write(dbi, goodTask); err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	task, err := Read(dbi, taskId)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	owner, ok := task.Owner.Get()
+	if !ok {
+		t.Errorf("Owner not found: %+v", task)
+	}
+
+	if owner != "ldv" {
+		t.Errorf("Wrong task found: %+v", task)
+	}
+
+	cleanTasks(dbi)
+}
+
+func TestDelete(t *testing.T) {
+	badTask := New()
+	if err := Delete(dbi, badTask); err == nil {
+		t.Fatalf("Expected error")
+	}
+
+	goodTask := makeGoodTask()
+
+	taskId, _ := goodTask.TaskID.Get()
+
+	if err := Write(dbi, goodTask); err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	task, err := Read(dbi, taskId)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	id, ok := task.TaskID.Get()
+	if !ok {
+		t.Errorf("TaskID not found: %+v", task)
+	}
+
+	if id != taskId {
+		t.Errorf("Wrong task found: %+v", task)
+	}
+
+	if err := Delete(dbi, task); err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	_, err = Read(dbi, taskId)
+	if err != nil {
+		if err != db.ErrNotFound {
+			t.Fatalf("Unexpected error: %v", err)
 		}
 	}
 }
