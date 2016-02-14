@@ -17,23 +17,20 @@ func TestNewKeywords(t *testing.T) {
 	}
 
 	for n, v := range data {
-		k.Append(n, v)
+		k[n] = v
 	}
 
-	if k.Length() != 3 {
-		t.Fatalf("wrong length = %d, expected 3", k.Length())
+	if len(k) != 3 {
+		t.Fatalf("wrong length = %d, expected 3", len(k))
 	}
 
 	for n, v := range data {
-		kwd, ok := k.Group(n)
+		kwd, ok := k[n]
 		if !ok {
 			t.Fatalf("'%s' not found", n)
 		}
-		if kwd.Group != n {
-			t.Fatalf("wrong group = '%s', expected '%s'", kwd.Group, n)
-		}
-		if kwd.Key != v {
-			t.Fatalf("wrong key = '%s', expected '%s'", kwd.Key, v)
+		if kwd != v {
+			t.Fatalf("wrong key = '%s', expected '%s'", kwd, v)
 		}
 	}
 }
@@ -42,45 +39,16 @@ func TestReplaceGroup(t *testing.T) {
 	grpName := "grp"
 
 	k := NewKeywords()
-	k.Append(grpName, "111")
-	k.Append(grpName, "222")
+	k[grpName] = "111"
+	k[grpName] = "222"
 
-	kwd, ok := k.Group(grpName)
+	kwd, ok := k[grpName]
 	if !ok {
 		t.Fatalf("'%s' not found", grpName)
 	}
 
-	if kwd.Key != "222" {
-		t.Fatalf("wrong key = '%s', expected '222'", kwd.Key)
-	}
-}
-
-func TestReplaceGroupByEmptyString(t *testing.T) {
-	grpName := "grp"
-
-	k := NewKeywords()
-	k.Append(grpName, "111")
-	k.Append(grpName, "")
-
-	kwd, ok := k.Group(grpName)
-	if !ok {
-		t.Fatalf("'%s' not found", grpName)
-	}
-
-	if kwd.Key != "111" {
-		t.Fatalf("wrong key = '%s', expected '111'", kwd.Key)
-	}
-}
-
-func TestAddEmptyString(t *testing.T) {
-	grpName := "grp"
-
-	k := NewKeywords()
-	k.Append(grpName, "")
-
-	_, ok := k.Group(grpName)
-	if ok {
-		t.Fatalf("'%s' found, but should not", grpName)
+	if kwd != "222" {
+		t.Fatalf("wrong key = '%s', expected '222'", kwd)
 	}
 }
 
@@ -95,7 +63,7 @@ func TestReturnKeywords(t *testing.T) {
 	}
 
 	for n, v := range data {
-		k.Append(n, v)
+		k[n] = v
 	}
 
 	kwds := k.Keywords()
@@ -122,7 +90,7 @@ func TestReturnGroups(t *testing.T) {
 	}
 
 	for n, v := range data {
-		k.Append(n, v)
+		k[n] = v
 	}
 
 	grps := k.Groups()
@@ -131,9 +99,6 @@ func TestReturnGroups(t *testing.T) {
 		_, ok := data[n]
 		if !ok {
 			t.Fatalf("'%s' not found in data", n)
-		}
-		if n == "grp3" {
-			t.Fatalf("'%s' empty group found", n)
 		}
 	}
 }

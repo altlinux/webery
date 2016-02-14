@@ -1,54 +1,93 @@
 package keywords
 
+import (
+	"encoding/json"
+
+	"gopkg.in/mgo.v2/bson"
+)
+
 type Keyword struct {
 	Key   string `json:"key"`
 	Group string `json:"group"`
 }
 
-type Keywords struct {
-	keywords []Keyword
-	groups   map[string]*Keyword
-}
+type Keywords map[string]string
 
-func NewKeywords() *Keywords {
-	return &Keywords{
-		keywords: make([]Keyword, 0),
-		groups:   make(map[string]*Keyword, 0),
-	}
-}
+func NewKeywords(arr ...Keyword) Keywords {
+	kwds := make(Keywords)
 
-func (k Keywords) Length() int {
-	return len(k.keywords)
-}
-
-func (k *Keywords) Append(group string, key string) {
-	if len(key) == 0 {
-		return
+	for _, a := range arr {
+		kwds[a.Group] = a.Key
 	}
 
-	if _, ok := k.groups[group]; !ok {
-		k.keywords = append(k.keywords, Keyword{key, group})
-		k.groups[group] = &k.keywords[len(k.keywords)-1]
+	return kwds
+}
+
+func (k Keywords) GetBSON() (interface{}, error) {
+	return k.Keywords(), nil
+}
+
+func (k Keywords) SetBSON(raw bson.Raw) (error) {
+	var v []Keyword
+	if err := raw.Unmarshal(&v); err != nil {
+		return err
+	}
+	if v == nil {
+		return nil
+	}
+
+	k = NewKeywords()
+	for _, a := range v {
+		k[a.Group] = a.Key
+	}
+
+	return nil
+}
+
+func (k Keywords) MarshalJSON() (out []byte, err error) {
+	if len(k) > 0 {
+		out, err = json.Marshal(k.Keywords())
 	} else {
-		k.groups[group].Key = key
+		var null *int
+		out, err = json.Marshal(null)
 	}
+	return
+}
+
+func (k Keywords) UnmarshalJSON(data []byte) error {
+	v :=  make([]Keyword, 0)
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	if v == nil {
+		return nil
+	}
+
+	k = NewKeywords()
+	for _, a := range v {
+		k[a.Group] = a.Key
+	}
+	return nil
 }
 
 func (k Keywords) Groups() []string {
 	groups := make([]string, 0)
 
-	for grp, _ := range k.groups {
+	for grp, _ := range k {
 		groups = append(groups, grp)
 	}
 
 	return groups
 }
 
-func (k *Keywords) Keywords() []Keyword {
-	return k.keywords
-}
+func (k Keywords) Keywords() []Keyword {
+	keywords := make([]Keyword, 0)
 
-func (k Keywords) Group(name string) (*Keyword, bool) {
-	v, ok := k.groups[name]
-	return v, ok
+	for grp, key := range k {
+		keywords = append(keywords, Keyword{
+			Key:   key,
+			Group: grp,
+		})
+	}
+	return keywords
 }
