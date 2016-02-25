@@ -5,6 +5,10 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+type dbKeySession int
+
+const ContextSession dbKeySession = 0
+
 var (
 	ErrNotFound = mgo.ErrNotFound
 	ErrCursor   = mgo.ErrCursor
@@ -48,4 +52,8 @@ type Session interface {
 	Coll(string) (Collection, error)
 	Ping() error
 	Close()
+}
+
+func IsDup(err error) bool {
+	return mgo.IsDup(err)
 }

@@ -13,6 +13,8 @@ var (
 )
 
 type Task struct {
+	dbname string
+
 	ObjType    jsontype.BaseString  `json:"-,omitempty"`
 	TimeCreate jsontype.Int64       `json:"-,omitempty"`
 	Search     kwd.Keywords         `json:"-,omitempty"`
@@ -29,12 +31,18 @@ type Task struct {
 }
 
 func New() *Task {
-	t := &Task{}
+	t := &Task{
+		dbname: CollName,
+	}
 
 	t.ObjType.Set("task")
 	t.Search = kwd.NewKeywords()
 
 	return t
+}
+
+func (t Task) GetDBCollection() string {
+	return t.dbname
 }
 
 func (t Task) GetID() (db.QueryDoc, error) {
@@ -57,7 +65,7 @@ func List(st db.Session, query db.QueryDoc) (res db.Query, err error) {
 }
 
 func Read(st db.Session, id int64) (task *Task, err error) {
-	task = &Task{}
+	task = New()
 	query, err := List(st, db.QueryDoc{"taskid": id})
 	if err == nil {
 		query.One(&task)
@@ -80,12 +88,12 @@ func Write(st db.Session, t *Task) error {
 		t.Search = kwd.NewKeywords()
 	}
 
-	if v, ok := t.TaskID.Get(); ok {
-		t.Search["taskid"] = fmt.Sprintf("%d", v)
+	if t.TaskID.IsDefined() {
+		t.Search["taskid"] = t.TaskID.String()
 	}
 
-	if v, ok := t.Repo.Get(); ok {
-		t.Search["repo"] = v
+	if t.Repo.IsDefined() {
+		t.Search["repo"] = t.Repo.String()
 	}
 
 	_, err = col.Upsert(id, t)

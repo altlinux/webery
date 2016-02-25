@@ -27,20 +27,16 @@ func (k Keywords) GetBSON() (interface{}, error) {
 	return k.Keywords(), nil
 }
 
-func (k Keywords) SetBSON(raw bson.Raw) (error) {
+func (k *Keywords) SetBSON(raw bson.Raw) error {
 	var v []Keyword
 	if err := raw.Unmarshal(&v); err != nil {
 		return err
 	}
-	if v == nil {
+	if v == nil || len(v) == 0 {
 		return nil
 	}
 
-	k = NewKeywords()
-	for _, a := range v {
-		k[a.Group] = a.Key
-	}
-
+	*k = NewKeywords(v...)
 	return nil
 }
 
@@ -54,26 +50,23 @@ func (k Keywords) MarshalJSON() (out []byte, err error) {
 	return
 }
 
-func (k Keywords) UnmarshalJSON(data []byte) error {
-	v :=  make([]Keyword, 0)
+func (k *Keywords) UnmarshalJSON(data []byte) error {
+	var v []Keyword
 	if err := json.Unmarshal(data, &v); err != nil {
 		return err
 	}
-	if v == nil {
+	if v == nil || len(v) == 0 {
 		return nil
 	}
 
-	k = NewKeywords()
-	for _, a := range v {
-		k[a.Group] = a.Key
-	}
+	*k = NewKeywords(v...)
 	return nil
 }
 
 func (k Keywords) Groups() []string {
-	groups := make([]string, 0)
+	var groups []string
 
-	for grp, _ := range k {
+	for grp := range k {
 		groups = append(groups, grp)
 	}
 
@@ -81,7 +74,7 @@ func (k Keywords) Groups() []string {
 }
 
 func (k Keywords) Keywords() []Keyword {
-	keywords := make([]Keyword, 0)
+	var keywords []Keyword
 
 	for grp, key := range k {
 		keywords = append(keywords, Keyword{

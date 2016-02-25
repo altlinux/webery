@@ -108,13 +108,11 @@ func TestCheckExistence(t *testing.T) {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	_, ok := task.Shared.Get()
-	if ok {
+	if task.Shared.IsDefined() {
 		t.Fatalf("Undefined field found: %+v", task)
 	}
 
-	_, ok = task.TestOnly.Get()
-	if !ok {
+	if !task.TestOnly.IsDefined() {
 		t.Fatalf("Defined field not found: %+v", task)
 	}
 }

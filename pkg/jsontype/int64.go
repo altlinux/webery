@@ -26,7 +26,7 @@ func (o Int64) GetBSON() (interface{}, error) {
 	return o.value, nil
 }
 
-func (o *Int64) SetBSON(raw bson.Raw) (error) {
+func (o *Int64) SetBSON(raw bson.Raw) error {
 	var v *int64
 	if err := raw.Unmarshal(&v); err != nil {
 		return err
@@ -65,6 +65,10 @@ func (o Int64) String() string {
 		return fmt.Sprintf("%d", o.value)
 	}
 	return "<nil>"
+}
+
+func (o Int64) IsDefined() bool {
+	return o.ok
 }
 
 func (o Int64) Get() (int64, bool) {

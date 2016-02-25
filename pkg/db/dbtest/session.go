@@ -38,7 +38,7 @@ func (s *TestSession) Coll(name string) (db.Collection, error) {
 	return &mongo.MongoCollection{Collection: s.Session.DB("").C(name)}, nil
 }
 
-func NewSession(conf config.ConfigMongo) *TestSession {
+func NewSession(conf config.Mongo) *TestSession {
 	s := &TestSession{}
 	s.dbname = "dbtest"
 

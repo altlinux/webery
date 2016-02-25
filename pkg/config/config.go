@@ -16,6 +16,10 @@ import (
 	"gopkg.in/gcfg.v1"
 )
 
+type cfgKeyConfig int
+
+const ContextConfig cfgKeyConfig = 0
+
 type CfgLogLevel struct {
 	logrus.Level
 }
@@ -25,7 +29,7 @@ func (d *CfgLogLevel) UnmarshalText(data []byte) (err error) {
 	return
 }
 
-type ConfigGlobal struct {
+type Global struct {
 	Address    string
 	Logfile    string
 	Pidfile    string
@@ -33,11 +37,11 @@ type ConfigGlobal struct {
 	MaxConns   int64
 }
 
-type ConfigContent struct {
+type Content struct {
 	Path string
 }
 
-type ConfigLogging struct {
+type Logging struct {
 	Level            CfgLogLevel
 	DisableColors    bool
 	DisableTimestamp bool
@@ -45,7 +49,7 @@ type ConfigLogging struct {
 	DisableSorting   bool
 }
 
-type ConfigMongo struct {
+type Mongo struct {
 	Hosts     []string
 	Direct    bool
 	Database  string
@@ -54,7 +58,7 @@ type ConfigMongo struct {
 	PoolLimit int
 }
 
-type ConfigBuilder struct {
+type Builder struct {
 	TaskStates    []string
 	SubTaskStates []string
 	SubTaskTypes  []string
@@ -63,11 +67,11 @@ type ConfigBuilder struct {
 }
 
 type Config struct {
-	Global  ConfigGlobal
-	Content ConfigContent
-	Logging ConfigLogging
-	Mongo   ConfigMongo
-	Builder ConfigBuilder
+	Global  Global
+	Content Content
+	Logging Logging
+	Mongo   Mongo
+	Builder Builder
 }
 
 // SetDefaults applies default values to config structure.

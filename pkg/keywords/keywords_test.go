@@ -1,10 +1,10 @@
 package keywords
 
 import (
-	//"fmt"
+	"reflect"
 	"testing"
 
-	//"github.com/altlinux/webery/pkg/model"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func TestNewKeywords(t *testing.T) {
@@ -100,5 +100,45 @@ func TestReturnGroups(t *testing.T) {
 		if !ok {
 			t.Fatalf("'%s' not found in data", n)
 		}
+	}
+}
+
+type fakeDoc struct {
+	Search Keywords
+}
+
+func TestSetBSON(t *testing.T) {
+	d0 := &fakeDoc{
+		Search: NewKeywords(),
+	}
+	d0.Search["foo"] = "xxx"
+	d0.Search["bar"] = "123"
+
+	d1 := &fakeDoc{
+		Search: NewKeywords(),
+	}
+
+	doc := bson.M{
+		"search": []bson.M{
+			{"group": "foo", "key": "xxx"},
+			{"group": "bar", "key": "123"},
+		},
+	}
+
+	out, err := bson.Marshal(doc)
+	if err != nil {
+		t.Fatalf("Error: %v", err)
+	}
+
+	err = bson.Unmarshal(out, d1)
+	if err != nil {
+		t.Fatalf("Error: %v", err)
+	}
+
+	if !reflect.DeepEqual(d0, d1) {
+		t.Errorf("Unexpected difference")
+
+		t.Logf("expected: %+v\n", d0)
+		t.Logf("got     : %+v\n", d1)
 	}
 }

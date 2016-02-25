@@ -26,7 +26,7 @@ func (o BaseString) GetBSON() (interface{}, error) {
 	return o.value, nil
 }
 
-func (o *BaseString) SetBSON(raw bson.Raw) (error) {
+func (o *BaseString) SetBSON(raw bson.Raw) error {
 	var v *string
 	if err := raw.Unmarshal(&v); err != nil {
 		return err
@@ -65,6 +65,10 @@ func (o BaseString) String() string {
 		return o.value
 	}
 	return "<nil>"
+}
+
+func (o BaseString) IsDefined() bool {
+	return o.ok
 }
 
 func (o BaseString) Get() (string, bool) {

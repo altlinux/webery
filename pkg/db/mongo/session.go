@@ -41,7 +41,7 @@ func (l *mongoDBLogger) Output(calldepth int, s string) error {
 	return nil
 }
 
-func NewSession(conf config.ConfigMongo) *MongoSession {
+func NewSession(conf config.Mongo) *MongoSession {
 	mgo.SetLogger(&mongoDBLogger{})
 	//	mgo.SetDebug(true)
 

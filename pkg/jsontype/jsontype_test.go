@@ -33,6 +33,11 @@ func TestAssign(t *testing.T) {
 	}
 
 	task.Foo.Set(true)
+
+	if !task.Foo.IsDefined() {
+		t.Fatalf("Field 'Foo' is not defined: %+v", task)
+	}
+
 	if v, ok := task.Foo.Get(); ok {
 		if v != true {
 			t.Errorf("Field 'Foo' has an unexpected value: %+v", task)
@@ -42,6 +47,11 @@ func TestAssign(t *testing.T) {
 	}
 
 	task.Bar.Set(int64(1))
+
+	if !task.Bar.IsDefined() {
+		t.Fatalf("Field 'Bar' is not defined: %+v", task)
+	}
+
 	if v, ok := task.Bar.Get(); ok {
 		if v != int64(1) {
 			t.Errorf("Field 'Bar' has an unexpected value: %+v", task)
@@ -51,6 +61,11 @@ func TestAssign(t *testing.T) {
 	}
 
 	task.Baz.Set("xxx")
+
+	if !task.Baz.IsDefined() {
+		t.Fatalf("Field 'Baz' is not defined: %+v", task)
+	}
+
 	if v, ok := task.Baz.Get(); ok {
 		if v != "xxx" {
 			t.Errorf("Field 'Baz' has an unexpected value: %+v", task)
@@ -220,8 +235,8 @@ func TestBSON(t *testing.T) {
 				t.Fatalf("Unexpected error: %s: %v", title, err)
 			}
 
-			t.Logf("expected: %+v\n", string(b0))
-			t.Logf("got     : %+v\n", string(b1))
+			t.Logf("expected (json): %+v\n", string(b0))
+			t.Logf("got      (json): %+v\n", string(b1))
 		}
 	}
 }

@@ -18,8 +18,6 @@ type SubTask struct {
 	Search     kwd.Keywords         `json:"-,omitempty"`
 	TaskID     jsontype.Int64       `json:"taskid,omitempty"`
 	SubTaskID  jsontype.Int64       `json:"subtaskid,omitempty"`
-	Try        jsontype.Int64       `json:"try,omitempty"`
-	Iter       jsontype.Int64       `json:"iter,omitempty"`
 	Owner      jsontype.LowerString `json:"owner,omitempty"`
 	Type       jsontype.LowerString `json:"type,omitempty"`
 	Status     jsontype.LowerString `json:"status,omitempty"`
@@ -94,12 +92,12 @@ func Write(st db.Session, t *SubTask) error {
 		t.Search = kwd.NewKeywords()
 	}
 
-	if v, ok := t.Owner.Get(); ok {
-		t.Search["owner"] = v
+	if t.Owner.IsDefined() {
+		t.Search["owner"] = t.Owner.String()
 	}
 
-	if v, ok := t.PkgName.Get(); ok {
-		t.Search["pkgname"] = v
+	if t.PkgName.IsDefined() {
+		t.Search["pkgname"] = t.PkgName.String()
 	}
 
 	_, err = col.Upsert(id, t)

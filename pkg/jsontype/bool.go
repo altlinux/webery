@@ -25,7 +25,7 @@ func (o Bool) GetBSON() (interface{}, error) {
 	return o.value, nil
 }
 
-func (o *Bool) SetBSON(raw bson.Raw) (error) {
+func (o *Bool) SetBSON(raw bson.Raw) error {
 	var v *bool
 	if err := raw.Unmarshal(&v); err != nil {
 		return err
@@ -67,6 +67,10 @@ func (o Bool) String() string {
 		return "false"
 	}
 	return "<nil>"
+}
+
+func (o Bool) IsDefined() bool {
+	return o.ok
 }
 
 func (o Bool) Get() (value bool, ok bool) {
