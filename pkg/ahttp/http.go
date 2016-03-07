@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"golang.org/x/net/context"
+
+	"github.com/altlinux/webery/pkg/logger"
 )
 
 type Handler func(context.Context, http.ResponseWriter, *http.Request)
@@ -22,11 +24,18 @@ func IsAlive(w http.ResponseWriter) bool {
 }
 
 func HTTPResponse(w http.ResponseWriter, status int, format string, args ...interface{}) {
+	err := ""
+	if format != "" {
+		err = fmt.Sprintf(format, args...)
+	}
+
 	if resp, ok := w.(*ResponseWriter); ok {
 		resp.HTTPStatus = status
-		if format != "" {
-			resp.HTTPError = fmt.Sprintf(format, args...)
-		}
+		resp.HTTPError = err
+	}
+
+	if 400 < status {
+		logger.WithFieldsDepth(nil, 3).Error(err)
 	}
 	w.WriteHeader(status)
 }

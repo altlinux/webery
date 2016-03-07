@@ -42,12 +42,73 @@ var Endpoints *EndpointsInfo = &EndpointsInfo{
 			},
 		},
 		{
+			Regexp:          regexp.MustCompile("^/api/v1/tasks/(?P<task>[0-9]+)/subtasks/(?P<subtask>[0-9]+)/?$"),
+			NeedDBHandler:   true,
+			NeedJSONHandler: true,
+			Handlers: MethodHandlers{
+				"GET":    SubtaskGetHandler,
+				"POST":   SubtaskUpdateHandler,
+				"DELETE": SubtaskDeleteHandler,
+			},
+		},
+		{
+			Regexp:          regexp.MustCompile("^/api/v1/tasks/(?P<task>[0-9]+)/subtasks/?$"),
+			NeedDBHandler:   true,
+			NeedJSONHandler: true,
+			Handlers: MethodHandlers{
+				"GET":  SubtaskListHandler,
+				"POST": SubtaskCreateHandler,
+			},
+		},
+		{
+			Regexp:          regexp.MustCompile("^/api/v1/tasks/(?P<task>[0-9]+)/?$"),
+			NeedDBHandler:   true,
+			NeedJSONHandler: true,
+			Handlers: MethodHandlers{
+				"GET":    TaskGetHandler,
+				"POST":   TaskUpdateHandler,
+				"DELETE": TaskDeleteHandler,
+			},
+		},
+		{
 			Regexp:          regexp.MustCompile("^/api/v1/tasks/?$"),
 			NeedDBHandler:   true,
 			NeedJSONHandler: true,
 			Handlers: MethodHandlers{
 				"GET":  TaskListHandler,
 				"POST": TaskCreateHandler,
+			},
+		},
+		{
+			Regexp:          regexp.MustCompile("^/api/v1/acl/(?P<repo>[0-9a-z]+)/search/(?P<type>(groups|packages))/?$"),
+			NeedDBHandler:   true,
+			NeedJSONHandler: true,
+			Handlers: MethodHandlers{
+				"GET": AclSearchHandler,
+			},
+		},
+		{
+			Regexp:          regexp.MustCompile("^/api/v1/acl/(?P<repo>[0-9a-z]+)/(?P<type>(groups|packages))/(?P<name>[0-9A-Za-z_.-]+)/?$"),
+			NeedDBHandler:   true,
+			NeedJSONHandler: true,
+			Handlers: MethodHandlers{
+				"GET": AclGetHandler,
+			},
+		},
+		{
+			Regexp:          regexp.MustCompile("^/api/v1/acl/(?P<repo>[0-9a-z]+)/(?P<type>(groups|packages))/?$"),
+			NeedDBHandler:   true,
+			NeedJSONHandler: true,
+			Handlers: MethodHandlers{
+				"GET": AclListHandler,
+			},
+		},
+		{
+			Regexp:          regexp.MustCompile("^/api/v1/acl/?$"),
+			NeedDBHandler:   false,
+			NeedJSONHandler: true,
+			Handlers: MethodHandlers{
+				"GET": AclReposListHandler,
 			},
 		},
 		{

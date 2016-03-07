@@ -12,11 +12,10 @@ import (
 	"github.com/altlinux/webery/pkg/ahttp"
 	"github.com/altlinux/webery/pkg/db"
 	"github.com/altlinux/webery/pkg/subtask"
-	"github.com/altlinux/webery/pkg/task"
 	"github.com/altlinux/webery/pkg/util"
 )
 
-func TaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func SubtaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
@@ -30,24 +29,15 @@ func TaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request
 	}
 
 	q := db.QueryDoc{}
+	q["taskid"] = util.ToInt64(p.Get("task"))
 
-	if p.Get("owner") != "" {
-		q["owner"] = p.Get("owner")
-	}
-	if p.Get("repo") != "" {
-		q["repo"] = p.Get("repo")
-	}
-	if p.Get("state") != "" {
-		q["state"] = p.Get("state")
-	}
-
-	query, err := task.List(st, q)
+	query, err := subtask.List(st, q)
 	if err != nil {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to get: %v", err)
 		return
 	}
 
-	query = query.Sort("taskid")
+	query = query.Sort("subtaskid")
 
 	limit := util.ToInt32(p.Get("limit"))
 	if limit > 0 {
@@ -58,7 +48,7 @@ func TaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request
 	successSent := false
 
 	for {
-		t := task.New()
+		t := subtask.New()
 		if !iter.Next(t) {
 			break
 		}
@@ -69,8 +59,7 @@ func TaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request
 
 		if !successSent {
 			successSent = true
-			w.Write([]byte(`{`))
-			w.Write([]byte(`"tasks":[`))
+			w.Write([]byte(`[`))
 		} else {
 			w.Write([]byte(`,`))
 		}
@@ -84,18 +73,17 @@ func TaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request
 		w.Write(msg)
 	}
 	if err := iter.Close(); err != nil {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Error iterating: %v", err)
+		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to close iterator: %v", err)
 		return
 	}
 
 	if !successSent {
-		w.Write([]byte(`{`))
-		w.Write([]byte(`"tasks":[`))
+		w.Write([]byte(`[`))
 	}
-	w.Write([]byte(`]}`))
+	w.Write([]byte(`]`))
 }
 
-func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func SubtaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	st, ok := ctx.Value(db.ContextSession).(db.Session)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain database from context")
@@ -108,14 +96,14 @@ func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	t := task.New()
+	t := subtask.New()
 	if err = json.Unmarshal(msg, t); err != nil {
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Invalid JSON: %s", err)
 		return
 	}
 
-	if !t.TaskID.IsDefined() {
-		ahttp.HTTPResponse(w, http.StatusBadRequest, "taskid: mandatory field is not specified")
+	if !t.SubTaskID.IsDefined() {
+		ahttp.HTTPResponse(w, http.StatusBadRequest, "subtaskid: mandatory field is not specified")
 		return
 	}
 
@@ -124,12 +112,17 @@ func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if !t.Repo.IsDefined() {
-		ahttp.HTTPResponse(w, http.StatusBadRequest, "repo: mandatory field is not specified")
-		return
+	if !t.Type.IsDefined() {
+		t.Type.Set("unknown")
 	}
 
-	if err := task.Write(st, t); err != nil {
+	if !t.Status.IsDefined() {
+		t.Status.Set("active")
+	}
+
+	// TODO Validation
+
+	if err := subtask.Write(st, t); err != nil {
 		if db.IsDup(err) {
 			ahttp.HTTPResponse(w, http.StatusBadRequest, "Already exists")
 		} else {
@@ -141,7 +134,7 @@ func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	ahttp.HTTPResponse(w, http.StatusOK, "OK")
 }
 
-func TaskGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func SubtaskGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
@@ -154,7 +147,9 @@ func TaskGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	task, err := task.Read(st, task.MakeID(util.ToInt64(p.Get("task"))))
+	subtaskID := subtask.MakeID(util.ToInt64(p.Get("task")), util.ToInt64(p.Get("subtask")))
+
+	t, err := subtask.Read(st, subtaskID)
 	if err != nil {
 		if db.IsNotFound(err) {
 			ahttp.HTTPResponse(w, http.StatusNotFound, "Not found")
@@ -164,70 +159,16 @@ func TaskGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if !ahttp.IsAlive(w) {
-		return
-	}
-
-	msg, err := json.Marshal(task)
+	msg, err := json.Marshal(t)
 	if err != nil {
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to marshal json: %v", err)
 		return
 	}
 
-	ignoreSubtasks := (p.Get("nosubtasks") != "")
-	ignoreCancelled := (p.Get("nocancelled") != "")
-
-	w.Write([]byte(`{`))
-	w.Write([]byte(`"task":`))
 	w.Write(msg)
-	w.Write([]byte(`,"subtasks":[`))
-
-	if !ignoreSubtasks {
-		q := db.QueryDoc{
-			"taskid": util.ToInt64(p.Get("task")),
-		}
-
-		query, err := subtask.List(st, q)
-		if err != nil {
-			ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to list: %v", err)
-			return
-		}
-
-		iter := query.Sort("subtaskid").Iter()
-
-		delim := false
-
-		for {
-			t := subtask.New()
-			if !iter.Next(t) {
-				break
-			}
-
-			if ignoreCancelled && t.IsCancelled() {
-				continue
-			}
-			msg, err := json.Marshal(t)
-			if err != nil {
-				ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to marshal: %v", err)
-				return
-			}
-			if delim {
-				w.Write([]byte(`,`))
-			}
-			w.Write(msg)
-			delim = true
-		}
-
-		if err := iter.Close(); err != nil {
-			ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to close iterator: %v", err)
-			return
-		}
-	}
-
-	w.Write([]byte(`]}`))
 }
 
-func TaskDeleteHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func SubtaskDeleteHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
@@ -240,9 +181,9 @@ func TaskDeleteHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	taskID := task.MakeID(util.ToInt64(p.Get("task")))
+	subtaskID := subtask.MakeID(util.ToInt64(p.Get("task")), util.ToInt64(p.Get("subtask")))
 
-	if err := task.Delete(st, taskID); err != nil {
+	if err := subtask.Delete(st, subtaskID); err != nil {
 		if db.IsNotFound(err) {
 			ahttp.HTTPResponse(w, http.StatusNotFound, "Not found")
 		} else {
@@ -251,15 +192,10 @@ func TaskDeleteHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := subtask.Delete(st, taskID); err != nil {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to delete subtasks: %v", err)
-		return
-	}
-
 	ahttp.HTTPResponse(w, http.StatusOK, "OK")
 }
 
-func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func SubtaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
@@ -272,9 +208,9 @@ func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	taskID := task.MakeID(util.ToInt64(p.Get("task")))
+	subtaskID := subtask.MakeID(util.ToInt64(p.Get("task")), util.ToInt64(p.Get("subtask")))
 
-	t, err := task.Read(st, taskID)
+	t, err := subtask.Read(st, subtaskID)
 	if err != nil {
 		if db.IsNotFound(err) {
 			ahttp.HTTPResponse(w, http.StatusNotFound, "Not found")
@@ -295,7 +231,7 @@ func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := task.Write(st, t); err != nil {
+	if err := subtask.Write(st, t); err != nil {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "%v", err)
 		return
 	}

@@ -6,95 +6,190 @@ import (
 	"net/url"
 
 	"golang.org/x/net/context"
-	"gopkg.in/mgo.v2/bson"
 
+	"github.com/altlinux/webery/pkg/acl"
 	"github.com/altlinux/webery/pkg/ahttp"
 	"github.com/altlinux/webery/pkg/db"
+	"github.com/altlinux/webery/pkg/subtask"
+	"github.com/altlinux/webery/pkg/task"
 	"github.com/altlinux/webery/pkg/util"
 )
 
-var searchCollections []string = []string{
-	"tasks",
-	"subtasks",
+type Query struct {
+	CollName string
+	Pattern  db.QueryDoc
+	Sort     []string
+	Iterator func(db.Iter) interface{}
 }
 
-type searchResult struct {
-	Query  string
-	Result []interface{}
-}
-
-func SearchHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func Search(ctx context.Context, w http.ResponseWriter, r *http.Request, q []Query) {
 	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
-		InternalServerErrorHandler(ctx, w, r)
-		return
-	}
-
-	prefix := p.Get("prefix")
-	limit := util.ToInt32(p.Get("limit"))
-
-	if len(prefix) == 0 {
-		w.Write([]byte(`[]`))
 		return
 	}
 
 	st, ok := ctx.Value(db.ContextSession).(db.Session)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain database from context")
-		InternalServerErrorHandler(ctx, w, r)
 		return
 	}
 
-	res := &searchResult{
-		Query:  prefix,
-		Result: make([]interface{}, 0),
+	limit := util.ToInt32(p.Get("limit"))
+
+	if limit == 0 {
+		limit = 1000
 	}
 
-	num := int(limit)
+	delim := false
+	w.Write([]byte(`{"result":[`))
 
-	for _, name := range searchCollections {
-		if limit > 0 && num == 0 {
+	for _, query := range q {
+		if !ahttp.IsAlive(w) {
+			return
+		}
+
+		if limit == 0 {
 			break
 		}
 
-		col, err := st.Coll(name)
+		col, err := st.Coll(query.CollName)
 		if err != nil {
+			ahttp.HTTPResponse(w, http.StatusInternalServerError, "%v", err)
+			return
 		}
 
-		query := col.Find(bson.M{
-			"search.key": bson.M{
-				"$regex": "^" + prefix,
-			},
-		})
+		collQuery := col.Find(query.Pattern).Limit(int(limit))
 
-		if num > 0 {
-			query = query.Limit(num)
+		if len(query.Sort) > 0 {
+			collQuery = collQuery.Sort(query.Sort...)
 		}
 
-		iter := query.Iter()
+		iter := collQuery.Iter()
 
-		var doc interface{}
-		for iter.Next(&doc) {
+		for {
 			if !ahttp.IsAlive(w) {
 				return
 			}
-			res.Result = append(res.Result, doc)
+
+			if limit == 0 {
+				break
+			}
+
+			doc := query.Iterator(iter)
+			if doc == nil {
+				break
+			}
+
+			msg, err := json.Marshal(doc)
+			if err != nil {
+				ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to marshal document")
+				return
+			}
+
+			if delim {
+				w.Write([]byte(`,`))
+			}
+			w.Write(msg)
+
+			limit--
+			delim = true
 		}
 
 		if err := iter.Close(); err != nil {
 			ahttp.HTTPResponse(w, http.StatusInternalServerError, "Error iterating: %+v", err)
-			InternalServerErrorHandler(ctx, w, r)
 			return
 		}
 	}
 
-	b, err := json.Marshal(res)
-	if err != nil {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to marshal result: %v", err)
-		InternalServerErrorHandler(ctx, w, r)
+	w.Write([]byte(`],"query":[`))
+
+	delim = false
+	for _, query := range q {
+		msg, err := json.Marshal(query.Pattern)
+		if err != nil {
+			ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to marshal pattern")
+			return
+		}
+		if delim {
+			w.Write([]byte(`,`))
+		}
+		w.Write(msg)
+		delim = true
+	}
+
+	w.Write([]byte(`]}`))
+}
+
+func SearchHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
+	if !ok {
+		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
 		return
 	}
 
-	w.Write(b)
+	Search(ctx, w, r, []Query{
+		Query{
+			CollName: "tasks",
+			Pattern:  db.QueryDoc{"search.key": db.QueryDoc{"$regex": "^" + p.Get("prefix")}},
+			Iterator: func(iter db.Iter) interface{} {
+				t := task.New()
+				if !iter.Next(t) {
+					return nil
+				}
+				return t
+			},
+		},
+		Query{
+			CollName: "subtasks",
+			Pattern:  db.QueryDoc{"search.key": db.QueryDoc{"$regex": "^" + p.Get("prefix")}},
+			Iterator: func(iter db.Iter) interface{} {
+				t := subtask.New()
+				if !iter.Next(t) {
+					return nil
+				}
+				return t
+			},
+		},
+	})
+}
+
+func AclSearchHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
+	if !ok {
+		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
+		return
+	}
+
+	query := db.QueryDoc{
+		"repo": p.Get("repo"),
+	}
+
+	if p.Get("prefix") == "" {
+		if p.Get("name") != "" {
+			query["name"] = p.Get("name")
+		}
+
+		if p.Get("member") != "" {
+			query["members.name"] = p.Get("member")
+		}
+
+	} else {
+		query["name"] = db.QueryDoc{"$regex": "^" + p.Get("prefix")}
+	}
+
+	Search(ctx, w, r, []Query{
+		Query{
+			CollName: "acl_" + p.Get("type"),
+			Pattern:  query,
+			Sort:     []string{"name"},
+			Iterator: func(iter db.Iter) interface{} {
+				t := &acl.ACL{}
+				if !iter.Next(t) {
+					return nil
+				}
+				return t
+			},
+		},
+	})
 }
