@@ -22,65 +22,20 @@ func SubtaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	st, ok := ctx.Value(db.ContextSession).(db.Session)
-	if !ok {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain database from context")
-		return
-	}
-
-	q := db.QueryDoc{}
-	q["taskid"] = util.ToInt64(p.Get("task"))
-
-	query, err := subtask.List(st, q)
-	if err != nil {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to get: %v", err)
-		return
-	}
-
-	query = query.Sort("subtaskid")
-
-	limit := util.ToInt32(p.Get("limit"))
-	if limit > 0 {
-		query = query.Limit(int(limit))
-	}
-
-	iter := query.Iter()
-	successSent := false
-
-	for {
-		t := subtask.New()
-		if !iter.Next(t) {
-			break
-		}
-
-		if !ahttp.IsAlive(w) {
-			return
-		}
-
-		if !successSent {
-			successSent = true
-			w.Write([]byte(`[`))
-		} else {
-			w.Write([]byte(`,`))
-		}
-
-		msg, err := json.Marshal(t)
-		if err != nil {
-			ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to marshal json: %v", err)
-			return
-		}
-
-		w.Write(msg)
-	}
-	if err := iter.Close(); err != nil {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to close iterator: %v", err)
-		return
-	}
-
-	if !successSent {
-		w.Write([]byte(`[`))
-	}
-	w.Write([]byte(`]`))
+	apiSearch(ctx, w, r, []Query{
+		Query{
+			CollName: subtask.CollName,
+			Sort:     []string{"subtaskid"},
+			Pattern:  db.QueryDoc{"taskid": util.ToInt64(p.Get("task"))},
+			Iterator: func(iter db.Iter) interface{} {
+				t := subtask.New()
+				if !iter.Next(t) {
+					return nil
+				}
+				return t
+			},
+		},
+	})
 }
 
 func SubtaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {

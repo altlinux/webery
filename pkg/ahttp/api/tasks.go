@@ -23,12 +23,6 @@ func TaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	st, ok := ctx.Value(db.ContextSession).(db.Session)
-	if !ok {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain database from context")
-		return
-	}
-
 	q := db.QueryDoc{}
 
 	if p.Get("owner") != "" {
@@ -41,58 +35,20 @@ func TaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request
 		q["state"] = p.Get("state")
 	}
 
-	query, err := task.List(st, q)
-	if err != nil {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to get: %v", err)
-		return
-	}
-
-	query = query.Sort("taskid")
-
-	limit := util.ToInt32(p.Get("limit"))
-	if limit > 0 {
-		query = query.Limit(int(limit))
-	}
-
-	iter := query.Iter()
-	successSent := false
-
-	for {
-		t := task.New()
-		if !iter.Next(t) {
-			break
-		}
-
-		if !ahttp.IsAlive(w) {
-			return
-		}
-
-		if !successSent {
-			successSent = true
-			w.Write([]byte(`{`))
-			w.Write([]byte(`"tasks":[`))
-		} else {
-			w.Write([]byte(`,`))
-		}
-
-		msg, err := json.Marshal(t)
-		if err != nil {
-			ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to marshal json: %v", err)
-			return
-		}
-
-		w.Write(msg)
-	}
-	if err := iter.Close(); err != nil {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Error iterating: %v", err)
-		return
-	}
-
-	if !successSent {
-		w.Write([]byte(`{`))
-		w.Write([]byte(`"tasks":[`))
-	}
-	w.Write([]byte(`]}`))
+	apiSearch(ctx, w, r, []Query{
+		Query{
+			CollName: task.CollName,
+			Sort:     []string{"taskid"},
+			Pattern:  q,
+			Iterator: func(iter db.Iter) interface{} {
+				t := task.New()
+				if !iter.Next(t) {
+					return nil
+				}
+				return t
+			},
+		},
+	})
 }
 
 func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {

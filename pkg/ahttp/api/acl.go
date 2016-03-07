@@ -34,48 +34,20 @@ func AclListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	st, ok := ctx.Value(db.ContextSession).(db.Session)
-	if !ok {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain database from context")
-		return
-	}
-
-	coll, err := st.Coll("acl_" + p.Get("type"))
-	if err != nil {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "%+v", err)
-		return
-	}
-
-	iter := coll.Find(bson.M{"repo": p.Get("repo")}).Sort("name").Iter()
-
-	delim := false
-	var rec acl.ACL
-
-	w.Write([]byte(`[`))
-
-	for iter.Next(&rec) {
-		if !ahttp.IsAlive(w) {
-			return
-		}
-
-		msg, err := json.Marshal(rec)
-		if err != nil {
-			ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to marshal record")
-			return
-		}
-		if delim {
-			w.Write([]byte(`,`))
-		}
-		w.Write(msg)
-		delim = true
-	}
-
-	if err := iter.Close(); err != nil {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Error iterating: %v", err)
-		return
-	}
-
-	w.Write([]byte(`]`))
+	apiSearch(ctx, w, r, []Query{
+		Query{
+			CollName: "acl_" + p.Get("type"),
+			Sort:     []string{"name"},
+			Pattern:  db.QueryDoc{"repo": p.Get("repo")},
+			Iterator: func(iter db.Iter) interface{} {
+				t := &acl.ACL{}
+				if !iter.Next(t) {
+					return nil
+				}
+				return t
+			},
+		},
+	})
 }
 
 func AclGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
