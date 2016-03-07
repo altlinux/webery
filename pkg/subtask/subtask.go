@@ -42,19 +42,32 @@ func New() *SubTask {
 }
 
 func (t SubTask) GetID() (db.QueryDoc, error) {
-	id := make(db.QueryDoc)
+	tid, ok := t.TaskID.Get()
+	if !ok {
+		return nil, fmt.Errorf("TaskID not specified")
+	}
 
-	if tid, ok := t.TaskID.Get(); ok {
-		id["taskid"] = tid
-	} else {
-		return id, fmt.Errorf("TaskID not specified")
+	stid, ok := t.SubTaskID.Get()
+	if !ok {
+		return nil, fmt.Errorf("SubTaskID not specified")
 	}
-	if stid, ok := t.SubTaskID.Get(); ok {
-		id["subtaskid"] = stid
-	} else {
-		return id, fmt.Errorf("SubTaskID not specified")
+
+	return MakeID(tid, stid), nil
+}
+
+func (t SubTask) IsCancelled() bool {
+	status, ok := t.Status.Get()
+	if !ok || status != "cancelled" {
+		return false
 	}
-	return id, nil
+	return true
+}
+
+func MakeID(id int64, sid int64) db.QueryDoc {
+	res := make(db.QueryDoc)
+	res["taskid"] = id
+	res["subtaskid"] = sid
+	return res
 }
 
 func List(st db.Session, query db.QueryDoc) (res db.Query, err error) {
@@ -65,14 +78,11 @@ func List(st db.Session, query db.QueryDoc) (res db.Query, err error) {
 	return
 }
 
-func Read(st db.Session, id int64, sid int64) (task *SubTask, err error) {
-	task = &SubTask{}
-	query, err := List(st, db.QueryDoc{
-		"taskid":    id,
-		"subtaskid": sid,
-	})
+func Read(st db.Session, id db.QueryDoc) (subtask *SubTask, err error) {
+	subtask = New()
+	query, err := List(st, id)
 	if err == nil {
-		query.One(&task)
+		query.One(&subtask)
 	}
 	return
 }
@@ -104,16 +114,12 @@ func Write(st db.Session, t *SubTask) error {
 	return err
 }
 
-func Delete(st db.Session, t *SubTask) error {
+func Delete(st db.Session, query db.QueryDoc) error {
 	col, err := st.Coll(CollName)
 	if err != nil {
 		return err
 	}
 
-	id, err := t.GetID()
-	if err != nil {
-		return err
-	}
-
-	return col.Remove(id)
+	_, err = col.RemoveAll(query)
+	return err
 }

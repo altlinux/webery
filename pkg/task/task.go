@@ -46,14 +46,17 @@ func (t Task) GetDBCollection() string {
 }
 
 func (t Task) GetID() (db.QueryDoc, error) {
-	id := make(db.QueryDoc)
-
-	if tid, ok := t.TaskID.Get(); ok {
-		id["taskid"] = tid
-	} else {
-		return id, fmt.Errorf("TaskID not specified")
+	tid, ok := t.TaskID.Get()
+	if !ok {
+		return nil, fmt.Errorf("TaskID not specified")
 	}
-	return id, nil
+	return MakeID(tid), nil
+}
+
+func MakeID(id int64) db.QueryDoc {
+	res := make(db.QueryDoc)
+	res["taskid"] = id
+	return res
 }
 
 func List(st db.Session, query db.QueryDoc) (res db.Query, err error) {
@@ -64,9 +67,9 @@ func List(st db.Session, query db.QueryDoc) (res db.Query, err error) {
 	return
 }
 
-func Read(st db.Session, id int64) (task *Task, err error) {
+func Read(st db.Session, id db.QueryDoc) (task *Task, err error) {
 	task = New()
-	query, err := List(st, db.QueryDoc{"taskid": id})
+	query, err := List(st, id)
 	if err == nil {
 		query.One(&task)
 	}
@@ -100,16 +103,12 @@ func Write(st db.Session, t *Task) error {
 	return err
 }
 
-func Delete(st db.Session, t *Task) error {
+func Delete(st db.Session, query db.QueryDoc) error {
 	col, err := st.Coll(CollName)
 	if err != nil {
 		return err
 	}
 
-	id, err := t.GetID()
-	if err != nil {
-		return err
-	}
-
-	return col.Remove(id)
+	_, err = col.RemoveAll(query)
+	return err
 }

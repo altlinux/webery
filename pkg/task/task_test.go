@@ -211,7 +211,7 @@ func TestRead(t *testing.T) {
 
 	taskId := int64(149239)
 
-	task, err := Read(dbi, taskId)
+	task, err := Read(dbi, MakeID(taskId))
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -242,7 +242,7 @@ func TestWrite(t *testing.T) {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	task, err := Read(dbi, taskId)
+	task, err := Read(dbi, MakeID(taskId))
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -275,7 +275,7 @@ func TestUpdate(t *testing.T) {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	task, err := Read(dbi, taskId)
+	task, err := Read(dbi, MakeID(taskId))
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -293,20 +293,15 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	badTask := New()
-	if err := Delete(dbi, badTask); err == nil {
-		t.Fatalf("Expected error")
-	}
-
 	goodTask := makeGoodTask()
 
-	taskId, _ := goodTask.TaskID.Get()
+	gootTaskID, _ := goodTask.TaskID.Get()
 
 	if err := Write(dbi, goodTask); err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	task, err := Read(dbi, taskId)
+	task, err := Read(dbi, MakeID(gootTaskID))
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -316,15 +311,15 @@ func TestDelete(t *testing.T) {
 		t.Errorf("TaskID not found: %+v", task)
 	}
 
-	if id != taskId {
+	if id != gootTaskID {
 		t.Errorf("Wrong task found: %+v", task)
 	}
 
-	if err := Delete(dbi, task); err != nil {
+	if err := Delete(dbi, MakeID(id)); err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	_, err = Read(dbi, taskId)
+	_, err = Read(dbi, MakeID(id))
 	if err != nil {
 		if err != db.ErrNotFound {
 			t.Fatalf("Unexpected error: %v", err)
