@@ -84,7 +84,7 @@ var Endpoints *EndpointsInfo = &EndpointsInfo{
 			NeedDBHandler:   true,
 			NeedJSONHandler: true,
 			Handlers: MethodHandlers{
-				"GET": AclSearchHandler,
+				"GET": AclListHandler,
 			},
 		},
 		{

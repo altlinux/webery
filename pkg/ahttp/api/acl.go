@@ -34,11 +34,28 @@ func AclListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	query := db.QueryDoc{
+		"repo": p.Get("repo"),
+	}
+
+	if p.Get("prefix") == "" {
+		if p.Get("name") != "" {
+			query["name"] = p.Get("name")
+		}
+
+		if p.Get("member") != "" {
+			query["members.name"] = p.Get("member")
+		}
+
+	} else {
+		query["name"] = db.QueryDoc{"$regex": "^" + p.Get("prefix")}
+	}
+
 	apiSearch(ctx, w, r, []Query{
 		Query{
 			CollName: "acl_" + p.Get("type"),
 			Sort:     []string{"name"},
-			Pattern:  db.QueryDoc{"repo": p.Get("repo")},
+			Pattern:  query,
 			Iterator: func(iter db.Iter) interface{} {
 				t := &acl.ACL{}
 				if !iter.Next(t) {

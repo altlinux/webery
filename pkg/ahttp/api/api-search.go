@@ -17,6 +17,7 @@ type Query struct {
 	Pattern  db.QueryDoc
 	Sort     []string
 	Iterator func(db.Iter) interface{}
+	One      func(db.Query) interface{}
 }
 
 func apiSearch(ctx context.Context, w http.ResponseWriter, r *http.Request, q []Query) {
