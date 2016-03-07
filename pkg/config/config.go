@@ -84,7 +84,7 @@ func (c *Config) SetDefaults() *Config {
 	c.Logging.DisableColors = true
 	c.Logging.DisableTimestamp = false
 	c.Logging.FullTimestamp = true
-	c.Logging.DisableSorting = true
+	c.Logging.DisableSorting = false
 
 	c.Mongo.Hosts = []string{"localhost:27017"}
 	c.Mongo.Database = "girar"
