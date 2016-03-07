@@ -1,6 +1,7 @@
 package jsonresponse
 
 import (
+	"fmt"
 	"net/http"
 
 	"golang.org/x/net/context"
@@ -22,9 +23,16 @@ func Handler(fn ahttp.Handler) ahttp.Handler {
 
 		if w, ok := resp.(*ahttp.ResponseWriter); ok {
 			if w.ResponseLength == resplen {
-				w.Write([]byte(`{}`))
+				w.Write([]byte(`{`))
+				if w.HTTPStatus >= 400 {
+					w.Write([]byte(fmt.Sprintf(`"status":%d,"title":"%s","detail":"%s"`,
+						w.HTTPStatus,
+						http.StatusText(w.HTTPStatus),
+						w.HTTPError)))
+				}
+				w.Write([]byte(`}`))
 			}
-			if w.HTTPStatus >= 200 && w.HTTPStatus < 300 {
+			if w.HTTPStatus < 400 {
 				w.Write([]byte(`,"status":"success"`))
 			} else {
 				w.Write([]byte(`,"status":"error"`))
