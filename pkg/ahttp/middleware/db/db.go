@@ -3,12 +3,12 @@ package db
 import (
 	"net/http"
 
-	log "github.com/Sirupsen/logrus"
 	"golang.org/x/net/context"
 
 	"github.com/altlinux/webery/pkg/ahttp"
 	"github.com/altlinux/webery/pkg/ahttp/acontext"
 	"github.com/altlinux/webery/pkg/db"
+	"github.com/altlinux/webery/pkg/logger"
 )
 
 type dbKeyRequestSession int
@@ -20,7 +20,7 @@ func Handler(fn ahttp.Handler) ahttp.Handler {
 		dbi, ok := ctx.Value(db.ContextSession).(db.Session)
 
 		if !ok {
-			log.Fatalf("Unable to obtain database session from context")
+			logger.WithFields(nil).Fatalf("Unable to obtain database session from context")
 			return
 		}
 
