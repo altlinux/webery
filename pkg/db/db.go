@@ -57,3 +57,10 @@ type Session interface {
 func IsDup(err error) bool {
 	return mgo.IsDup(err)
 }
+
+func IsNotFound(err error) bool {
+	if err == mgo.ErrNotFound {
+		return true
+	}
+	return false
+}
