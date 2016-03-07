@@ -18,11 +18,11 @@ func Handler(fn ahttp.Handler) ahttp.Handler {
 
 		defer func() {
 			e := log.NewEntry(log.StandardLogger()).WithFields(log.Fields{
-				"stop":   time.Now().String(),
-				"start":  reqTime.String(),
-				"method": req.Method,
-				"addr":   req.RemoteAddr,
-				"reqlen": req.ContentLength,
+				"timestop":  time.Now().String(),
+				"timestart": reqTime.String(),
+				"method":    req.Method,
+				"client":    req.RemoteAddr,
+				"reqlen":    req.ContentLength,
 			})
 
 			if ok {
