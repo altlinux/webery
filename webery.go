@@ -9,6 +9,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"golang.org/x/net/context"
 
+	"github.com/altlinux/logfile-go"
 	"github.com/altlinux/webery/pkg/ahttp"
 	"github.com/altlinux/webery/pkg/ahttp/acontext"
 	"github.com/altlinux/webery/pkg/ahttp/api"
@@ -65,6 +66,13 @@ func main() {
 		DisableColors:    cfg.Logging.DisableColors,
 		DisableSorting:   cfg.Logging.DisableSorting,
 	})
+
+	logFile, err := logfile.OpenLogfile(cfg.Global.Logfile)
+	if err != nil {
+		log.Fatal("Unable to open log: ", err.Error())
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
 
 	dbi := storage.NewSession(cfg.Mongo)
 	defer dbi.Close()
