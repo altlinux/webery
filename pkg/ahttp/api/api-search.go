@@ -12,14 +12,6 @@ import (
 	"github.com/altlinux/webery/pkg/util"
 )
 
-type Query struct {
-	CollName string
-	Pattern  db.QueryDoc
-	Sort     []string
-	Iterator func(db.Iter) interface{}
-	One      func(db.Query) interface{}
-}
-
 func apiSearch(ctx context.Context, w http.ResponseWriter, r *http.Request, q []Query) {
 	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
 	if !ok {

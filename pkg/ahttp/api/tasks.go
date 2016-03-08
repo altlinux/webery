@@ -104,83 +104,15 @@ func TaskGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	st, ok := ctx.Value(db.ContextSession).(db.Session)
-	if !ok {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain database from context")
-		return
-	}
-
-	task, err := task.Read(st, task.MakeID(util.ToInt64(p.Get("task"))))
-	if err != nil {
-		if db.IsNotFound(err) {
-			ahttp.HTTPResponse(w, http.StatusNotFound, "Not found")
-		} else {
-			ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to read: %v", err)
-		}
-		return
-	}
-
-	if !ahttp.IsAlive(w) {
-		return
-	}
-
-	msg, err := json.Marshal(task)
-	if err != nil {
-		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to marshal json: %v", err)
-		return
-	}
-
-	ignoreSubtasks := (p.Get("nosubtasks") != "")
-	ignoreCancelled := (p.Get("nocancelled") != "")
-
-	w.Write([]byte(`{`))
-	w.Write([]byte(`"task":`))
-	w.Write(msg)
-	w.Write([]byte(`,"subtasks":[`))
-
-	if !ignoreSubtasks {
-		q := db.QueryDoc{
-			"taskid": util.ToInt64(p.Get("task")),
-		}
-
-		query, err := subtask.List(st, q)
-		if err != nil {
-			ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to list: %v", err)
-			return
-		}
-
-		iter := query.Sort("subtaskid").Iter()
-
-		delim := false
-
-		for {
-			t := subtask.New()
-			if !iter.Next(t) {
-				break
-			}
-
-			if ignoreCancelled && t.IsCancelled() {
-				continue
-			}
-			msg, err := json.Marshal(t)
-			if err != nil {
-				ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to marshal: %v", err)
-				return
-			}
-			if delim {
-				w.Write([]byte(`,`))
-			}
-			w.Write(msg)
-			delim = true
-		}
-
-		if err := iter.Close(); err != nil {
-			ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to close iterator: %v", err)
-			return
-		}
-	}
-
-	w.Write([]byte(`]}`))
+	apiGet(ctx, w, r, Query{
+		CollName: task.CollName,
+		Pattern:  task.MakeID(util.ToInt64(p.Get("task"))),
+		One:      func(query db.Query) (interface{}, error) {
+			t := task.New()
+			err := query.One(t)
+			return t, err
+		},
+	})
 }
 
 func TaskDeleteHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {

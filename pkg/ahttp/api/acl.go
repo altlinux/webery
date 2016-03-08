@@ -6,7 +6,6 @@ import (
 	"net/url"
 
 	"golang.org/x/net/context"
-	"gopkg.in/mgo.v2/bson"
 
 	"github.com/altlinux/webery/pkg/acl"
 	"github.com/altlinux/webery/pkg/ahttp"
@@ -74,56 +73,27 @@ func AclGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	st, ok := ctx.Value(db.ContextSession).(db.Session)
-	if !ok {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain database from context")
-		return
-	}
+	apiGet(ctx, w, r, Query{
+		CollName: "acl_" + p.Get("type"),
+		Pattern:  db.QueryDoc{
+			"repo": p.Get("repo"),
+			"name": p.Get("name"),
+		},
+		One:      func(query db.Query) (interface{}, error) {
+			var err error
+			t := &acl.ACL{}
 
-	res := &acl.ACL{}
-
-	if p.Get("type") == "groups" {
-		if p.Get("name") == "nobody" || p.Get("name") == "everybody" {
-			res.Name = p.Get("name")
-			res.Repo = p.Get("repo")
-			res.Members = make([]acl.Member, 0)
-
-			msg, err := json.Marshal(res)
-			if err != nil {
-				ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to marshal record")
-				return
+			if p.Get("type") == "groups" {
+				if p.Get("name") == "nobody" || p.Get("name") == "everybody" {
+					t.Name = p.Get("name")
+					t.Repo = p.Get("repo")
+					t.Members = make([]acl.Member, 0)
+					return t, err
+				}
 			}
 
-			w.Write(msg)
-			return
-		}
-	}
-
-	coll, err := st.Coll("acl_" + p.Get("type"))
-	if err != nil {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "%+v", err)
-		return
-	}
-
-	query := coll.Find(bson.M{
-		"repo": p.Get("repo"),
-		"name": p.Get("name"),
+			err = query.One(t)
+			return t, err
+		},
 	})
-
-	if err := query.One(res); err != nil {
-		if db.IsNotFound(err) {
-			ahttp.HTTPResponse(w, http.StatusNotFound, "Not found")
-		} else {
-			ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to read: %v", err)
-		}
-		return
-	}
-
-	msg, err := json.Marshal(res)
-	if err != nil {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to marshal record")
-		return
-	}
-
-	w.Write(msg)
 }

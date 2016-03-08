@@ -96,31 +96,15 @@ func SubtaskGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	st, ok := ctx.Value(db.ContextSession).(db.Session)
-	if !ok {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain database from context")
-		return
-	}
-
-	subtaskID := subtask.MakeID(util.ToInt64(p.Get("task")), util.ToInt64(p.Get("subtask")))
-
-	t, err := subtask.Read(st, subtaskID)
-	if err != nil {
-		if db.IsNotFound(err) {
-			ahttp.HTTPResponse(w, http.StatusNotFound, "Not found")
-		} else {
-			ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to read: %v", err)
-		}
-		return
-	}
-
-	msg, err := json.Marshal(t)
-	if err != nil {
-		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to marshal json: %v", err)
-		return
-	}
-
-	w.Write(msg)
+	apiGet(ctx, w, r, Query{
+		CollName: subtask.CollName,
+		Pattern:  subtask.MakeID(util.ToInt64(p.Get("task")), util.ToInt64(p.Get("subtask"))),
+		One:      func(query db.Query) (interface{}, error) {
+			t := subtask.New()
+			err := query.One(t)
+			return t, err
+		},
+	})
 }
 
 func SubtaskDeleteHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
