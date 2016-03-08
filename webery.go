@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/altlinux/logfile-go"
+	"github.com/altlinux/pidfile-go"
 	"github.com/altlinux/webery/pkg/ahttp"
 	"github.com/altlinux/webery/pkg/ahttp/acontext"
 	"github.com/altlinux/webery/pkg/ahttp/api"
@@ -66,6 +67,20 @@ func main() {
 		DisableColors:    cfg.Logging.DisableColors,
 		DisableSorting:   cfg.Logging.DisableSorting,
 	})
+
+	pidFile, err := pidfile.OpenPidfile(cfg.Global.Pidfile)
+	if err != nil {
+		log.Fatal("Unable to open pidfile: ", err.Error())
+	}
+	defer pidFile.Close()
+
+	if err := pidFile.Check(); err != nil {
+		log.Fatal("Check failed: ", err.Error())
+	}
+
+	if err := pidFile.Write(); err != nil {
+		log.Fatal("Unable to write pidfile: ", err.Error())
+	}
 
 	logFile, err := logfile.OpenLogfile(cfg.Global.Logfile)
 	if err != nil {
