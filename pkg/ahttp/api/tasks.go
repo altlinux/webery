@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -122,6 +123,8 @@ func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	t.TimeCreate.Set(time.Now().Unix())
+
 	if !writeTask(ctx, w, t) {
 		return
 	}
@@ -203,6 +206,7 @@ func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
+	t.TimeCreate.Readonly(true)
 
 	msg, err := ioutil.ReadAll(r.Body)
 	if err != nil {

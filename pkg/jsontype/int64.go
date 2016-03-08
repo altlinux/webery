@@ -8,14 +8,16 @@ import (
 )
 
 type Int64 struct {
-	value int64
-	ok    bool
+	value    int64
+	ok       bool
+	readonly bool
 }
 
 func NewInt64(v int64) *Int64 {
 	return &Int64{
-		value: v,
-		ok:    true,
+		value:    v,
+		ok:       true,
+		readonly: false,
 	}
 }
 
@@ -27,6 +29,9 @@ func (o Int64) GetBSON() (interface{}, error) {
 }
 
 func (o *Int64) SetBSON(raw bson.Raw) error {
+	if o.readonly {
+		return nil
+	}
 	var v *int64
 	if err := raw.Unmarshal(&v); err != nil {
 		return err
@@ -49,6 +54,9 @@ func (o Int64) MarshalJSON() (out []byte, err error) {
 }
 
 func (o *Int64) UnmarshalJSON(data []byte) error {
+	if o.readonly {
+		return nil
+	}
 	var v *int64
 	if err := json.Unmarshal(data, &v); err != nil {
 		return err
@@ -76,6 +84,13 @@ func (o Int64) Get() (int64, bool) {
 }
 
 func (o *Int64) Set(v int64) {
+	if o.readonly {
+		return
+	}
 	o.value = v
 	o.ok = true
+}
+
+func (o *Int64) Readonly(v bool) {
+	o.readonly = v
 }

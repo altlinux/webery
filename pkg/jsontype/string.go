@@ -8,14 +8,16 @@ import (
 )
 
 type BaseString struct {
-	value string
-	ok    bool
+	value    string
+	ok       bool
+	readonly bool
 }
 
 func NewBaseString(v string) *BaseString {
 	return &BaseString{
-		value: v,
-		ok:    true,
+		value:    v,
+		ok:       true,
+		readonly: false,
 	}
 }
 
@@ -27,6 +29,9 @@ func (o BaseString) GetBSON() (interface{}, error) {
 }
 
 func (o *BaseString) SetBSON(raw bson.Raw) error {
+	if o.readonly {
+		return nil
+	}
 	var v *string
 	if err := raw.Unmarshal(&v); err != nil {
 		return err
@@ -49,6 +54,9 @@ func (o *BaseString) MarshalJSON() (out []byte, err error) {
 }
 
 func (o *BaseString) UnmarshalJSON(data []byte) error {
+	if o.readonly {
+		return nil
+	}
 	var v *string
 	if err := json.Unmarshal(data, &v); err != nil {
 		return err
@@ -76,8 +84,15 @@ func (o BaseString) Get() (string, bool) {
 }
 
 func (o *BaseString) Set(v string) {
+	if o.readonly {
+		return
+	}
 	o.value = v
 	o.ok = true
+}
+
+func (o *BaseString) Readonly(v bool) {
+	o.readonly = v
 }
 
 type LowerString struct {

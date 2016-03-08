@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -129,6 +130,9 @@ func SubtaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Re
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Invalid JSON: %s", err)
 		return
 	}
+
+	t.TimeCreate.Set(time.Now().Unix())
+
 	if !writeSubTask(ctx, w, t) {
 		return
 	}
@@ -205,6 +209,7 @@ func SubtaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Re
 		}
 		return
 	}
+	t.TimeCreate.Readonly(true)
 
 	msg, err := ioutil.ReadAll(r.Body)
 	if err != nil {

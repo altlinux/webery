@@ -13,8 +13,8 @@ var (
 )
 
 type SubTask struct {
-	ObjType    jsontype.BaseString  `json:"-,omitempty"`
-	TimeCreate jsontype.Int64       `json:"-,omitempty"`
+	ObjType    jsontype.BaseString  `json:"objtype,omitempty"`
+	TimeCreate jsontype.Int64       `json:"timecreate,omitempty"`
 	Search     kwd.Keywords         `json:"-,omitempty"`
 	TaskID     jsontype.Int64       `json:"taskid,omitempty"`
 	SubTaskID  jsontype.Int64       `json:"subtaskid,omitempty"`
@@ -97,6 +97,8 @@ func Write(st db.Session, t *SubTask) error {
 	if err != nil {
 		return err
 	}
+
+	t.ObjType.Set("subtask")
 
 	if t.Search == nil {
 		t.Search = kwd.NewKeywords()

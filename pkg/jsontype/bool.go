@@ -7,14 +7,16 @@ import (
 )
 
 type Bool struct {
-	value bool
-	ok    bool
+	value    bool
+	ok       bool
+	readonly bool
 }
 
 func NewBool(v bool) *Bool {
 	return &Bool{
-		value: v,
-		ok:    true,
+		value:    v,
+		ok:       true,
+		readonly: false,
 	}
 }
 
@@ -26,6 +28,9 @@ func (o Bool) GetBSON() (interface{}, error) {
 }
 
 func (o *Bool) SetBSON(raw bson.Raw) error {
+	if o.readonly {
+		return nil
+	}
 	var v *bool
 	if err := raw.Unmarshal(&v); err != nil {
 		return err
@@ -48,6 +53,9 @@ func (o Bool) MarshalJSON() (out []byte, err error) {
 }
 
 func (o *Bool) UnmarshalJSON(data []byte) error {
+	if o.readonly {
+		return nil
+	}
 	var v *bool
 	if err := json.Unmarshal(data, &v); err != nil {
 		return err
@@ -78,6 +86,13 @@ func (o Bool) Get() (value bool, ok bool) {
 }
 
 func (o *Bool) Set(v bool) {
+	if o.readonly {
+		return
+	}
 	o.value = v
 	o.ok = true
+}
+
+func (o *Bool) Readonly(v bool) {
+	o.readonly = v
 }
