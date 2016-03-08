@@ -75,11 +75,11 @@ func AclGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) 
 
 	apiGet(ctx, w, r, Query{
 		CollName: "acl_" + p.Get("type"),
-		Pattern:  db.QueryDoc{
+		Pattern: db.QueryDoc{
 			"repo": p.Get("repo"),
 			"name": p.Get("name"),
 		},
-		One:      func(query db.Query) (interface{}, error) {
+		One: func(query db.Query) (interface{}, error) {
 			var err error
 			t := &acl.ACL{}
 
