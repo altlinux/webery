@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/altlinux/webery/pkg/ahttp"
+	"github.com/altlinux/webery/pkg/config"
 	"github.com/altlinux/webery/pkg/db"
 	"github.com/altlinux/webery/pkg/subtask"
 	"github.com/altlinux/webery/pkg/task"
@@ -51,13 +52,64 @@ func TaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request
 	})
 }
 
-func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func writeTask(ctx context.Context, w http.ResponseWriter, t *task.Task) bool {
 	st, ok := ctx.Value(db.ContextSession).(db.Session)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain database from context")
-		return
+		return false
 	}
 
+	cfg, ok := ctx.Value(config.ContextConfig).(*config.Config)
+	if !ok {
+		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain config from context")
+		return false
+	}
+
+	if v, ok := t.TaskID.Get(); ok {
+		if v < int64(1) {
+			ahttp.HTTPResponse(w, http.StatusBadRequest, "taskid must be greater than zero")
+			return false
+		}
+	} else {
+		ahttp.HTTPResponse(w, http.StatusBadRequest, "taskid: mandatory field is not specified")
+		return false
+	}
+
+	if v, ok := t.Repo.Get(); ok {
+		if !util.InSliceString(v, cfg.Builder.Repos) {
+			ahttp.HTTPResponse(w, http.StatusBadRequest, "Unknown repo")
+			return false
+		}
+	} else {
+		ahttp.HTTPResponse(w, http.StatusBadRequest, "repo: mandatory field is not specified")
+		return false
+	}
+
+	if !t.Owner.IsDefined() {
+		ahttp.HTTPResponse(w, http.StatusBadRequest, "owner: mandatory field is not specified")
+		return false
+	}
+
+	if v, ok := t.State.Get(); ok {
+		if !util.InSliceString(v, cfg.Builder.TaskStates) {
+			ahttp.HTTPResponse(w, http.StatusBadRequest, "Unknown state")
+			return false
+		}
+	}
+
+	if err := task.Write(st, t); err != nil {
+		if db.IsDup(err) {
+			ahttp.HTTPResponse(w, http.StatusBadRequest, "Already exists")
+		} else {
+			ahttp.HTTPResponse(w, http.StatusInternalServerError, "%+v", err)
+		}
+		return false
+	}
+
+	return true
+}
+
+func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	msg, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to read body: %s", err)
@@ -70,27 +122,7 @@ func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if !t.TaskID.IsDefined() {
-		ahttp.HTTPResponse(w, http.StatusBadRequest, "taskid: mandatory field is not specified")
-		return
-	}
-
-	if !t.Owner.IsDefined() {
-		ahttp.HTTPResponse(w, http.StatusBadRequest, "owner: mandatory field is not specified")
-		return
-	}
-
-	if !t.Repo.IsDefined() {
-		ahttp.HTTPResponse(w, http.StatusBadRequest, "repo: mandatory field is not specified")
-		return
-	}
-
-	if err := task.Write(st, t); err != nil {
-		if db.IsDup(err) {
-			ahttp.HTTPResponse(w, http.StatusBadRequest, "Already exists")
-		} else {
-			ahttp.HTTPResponse(w, http.StatusInternalServerError, "%+v", err)
-		}
+	if !writeTask(ctx, w, t) {
 		return
 	}
 
@@ -107,7 +139,7 @@ func TaskGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	apiGet(ctx, w, r, Query{
 		CollName: task.CollName,
 		Pattern:  task.MakeID(util.ToInt64(p.Get("task"))),
-		One:      func(query db.Query) (interface{}, error) {
+		One: func(query db.Query) (interface{}, error) {
 			t := task.New()
 			err := query.One(t)
 			return t, err
@@ -183,8 +215,7 @@ func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := task.Write(st, t); err != nil {
-		ahttp.HTTPResponse(w, http.StatusInternalServerError, "%v", err)
+	if !writeTask(ctx, w, t) {
 		return
 	}
 
