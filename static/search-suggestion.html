@@ -1,0 +1,12 @@
+<ul class="dropdown-menu col-md-12" role="listbox"
+	ng-show="isOpen() && !moveInProgress"
+	ng-style="{top: position().top+'px', left: position().left+'px'}"
+	style="display: block;" aria-hidden="{{!isOpen()}}">
+	<li role="option" id="{{::match.id}}"
+		ng-repeat="match in matches track by $index"
+		ng-class="{active: isActive($index) }"
+		ng-mouseenter="selectActive($index)"
+		ng-click="selectMatch($index)">
+		<a href="#" class="snippet" ng-include="match.model.include">...</a>
+	</li>
+</ul>

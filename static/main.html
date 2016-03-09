@@ -1,0 +1,64 @@
+<div class="container" ng-controller="SearchCtrl">
+	<div class="row">
+		<div class="col-md-12">
+			<form method="POST" class="form">
+				<div class="form-group" ng-class="{'has-error': noResults}">
+					<div class="input-group col-md-12">
+						<input type="text" class="form-control" placeholder="Search for tasks ..." focus-item
+							ng-model="asyncSelected"
+							uib-typeahead="result as result.task_id for result in getResults($viewValue)"
+							typeahead-on-select="showResult($item, $model, $label)"
+							typeahead-popup-template-url="search-suggestion.html"
+							typeahead-loading="loadingLocations"
+							typeahead-no-results="noResults"
+						/>
+						<div class="input-group-addon" ng-show="loadingLocations">
+							<span class="glyphicon glyphicon-refresh"></span>
+						</div>
+						<div class="input-group-addon">
+							<span class="glyphicon glyphicon-search"></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="row">
+		<div class="col-md-6">
+			<div class="well well-sm">
+				<h4>Git repositories</h4>
+				<ul>
+					<li><a href="{{ GitAltUrl }}/people/">ALT Linux Team members' repositories</a></li>
+					<li><a href="{{ GitAltUrl }}/gears/">Source code for packages</a> built from <a href="http://www.altlinux.org/Gear">GEAR</a> repositories</li>
+					<li><a href="{{ GitAltUrl }}/srpms/">Source code for packages</a> built from <a href="http://en.wikipedia.org/wiki/SRPM">SRPMs</a></li>
+				</ul>
+			</div>
+
+			<div class="well well-sm">
+				<h4>Builder tasks</h4>
+				<ul>
+					<li><a href="{{ GitAltUrl }}/tasks/index/">Recent tasks</a></li>
+					<li><a href="{{ GitAltUrl }}/tasks/archive/">Archived tasks</a></li>
+				</ul>
+			</div>
+		</div>
+
+		<div class="col-md-6">
+			<div class="well well-sm">
+				<h4>Sisyphus rebuild logs</h4>
+				<ul>
+					<li><a href="{{ GitAltUrl }}/beehive/logs/Sisyphus-i586/latest/error/">Error logs of the latest Sisyphus i586 rebuild test</a></li>
+					<li><a href="{{ GitAltUrl }}/beehive/logs/Sisyphus-x86_64/latest/error/">Error logs of the latest Sisyphus x86-64 rebuild test</a></li>
+				</ul>
+			</div>
+
+			<div class="well well-sm">
+				<h4>Sisyphus FTBFS databases</h4>
+				<ul>
+					<li><a href="{{ GitAltUrl }}/beehive/stats/Sisyphus-i586/ftbfs-joined">Sisyphus i586 FTBFS database</a></li>
+					<li><a href="{{ GitAltUrl }}/beehive/stats/Sisyphus-x86_64/ftbfs-joined">Sisyphus x86-64 FTBFS database</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>

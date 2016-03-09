@@ -1,0 +1,10 @@
+<div class="row">
+	<div class="col-md-7">
+		<b ng-bind-html="match.model.taskid"></b> / <b ng-bind-html="match.model.subtaskid"></b>
+		<span ng-bind-html="match.model.pkgname"></span> <span ng-bind-html="match.model.tag_name"></span>
+	</div>
+	<div class="col-md-5">
+		created in <span ng-bind-html="match.model.timecreate * 1000 | date:'yyyy-MM-dd'"></span>
+		by <span ng-bind-html="match.model.owner"></span>
+	</div>
+</div>
