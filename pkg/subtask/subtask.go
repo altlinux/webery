@@ -13,9 +13,9 @@ var (
 )
 
 type SubTask struct {
+	Search     kwd.Keywords         `json:"-"`
 	ObjType    jsontype.BaseString  `json:"objtype,omitempty"`
 	TimeCreate jsontype.Int64       `json:"timecreate,omitempty"`
-	Search     kwd.Keywords         `json:"-,omitempty"`
 	TaskID     jsontype.Int64       `json:"taskid,omitempty"`
 	SubTaskID  jsontype.Int64       `json:"subtaskid,omitempty"`
 	Owner      jsontype.LowerString `json:"owner,omitempty"`

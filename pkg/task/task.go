@@ -13,11 +13,9 @@ var (
 )
 
 type Task struct {
-	dbname string
-
+	Search     kwd.Keywords         `json:"-"`
 	ObjType    jsontype.BaseString  `json:"objtype,omitempty"`
 	TimeCreate jsontype.Int64       `json:"timecreate,omitempty"`
-	Search     kwd.Keywords         `json:"-,omitempty"`
 	TaskID     jsontype.Int64       `json:"taskid,omitempty"`
 	Try        jsontype.Int64       `json:"try,omitempty"`
 	Iter       jsontype.Int64       `json:"iter,omitempty"`
@@ -31,18 +29,12 @@ type Task struct {
 }
 
 func New() *Task {
-	t := &Task{
-		dbname: CollName,
-	}
+	t := &Task{}
 
 	t.ObjType.Set("task")
 	t.Search = kwd.NewKeywords()
 
 	return t
-}
-
-func (t Task) GetDBCollection() string {
-	return t.dbname
 }
 
 func (t Task) GetID() (db.QueryDoc, error) {
