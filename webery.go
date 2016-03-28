@@ -2,9 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"net/http"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -21,14 +19,7 @@ import (
 
 var (
 	configFile = flag.String("config", "", "Path to configuration file")
-	resultDoc  = "<html><head/><body><h1>Hello!</h1></body></html>"
 )
-
-func pageHandler(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-	time.Sleep(5 * time.Second)
-	resp.WriteHeader(http.StatusOK)
-	fmt.Fprintf(resp, "%s", resultDoc)
-}
 
 type Server struct {
 	Cfg *config.Config
