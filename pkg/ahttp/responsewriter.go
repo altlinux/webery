@@ -2,15 +2,21 @@ package ahttp
 
 import (
 	"net/http"
+	"sync"
 )
 
 func NewResponseWriter(w http.ResponseWriter) http.ResponseWriter {
-	return &ResponseWriter{w, http.StatusOK, "", 0, false}
+	return &ResponseWriter{
+		ResponseWriter: w,
+		HTTPStatus:     http.StatusOK,
+	}
 }
 
 // ResponseWriter is a wrapper for http.ResponseWriter
 type ResponseWriter struct {
 	http.ResponseWriter
+
+	mu sync.Mutex
 
 	HTTPStatus     int
 	HTTPError      string
@@ -24,10 +30,16 @@ func (resp *ResponseWriter) CloseNotify() <-chan bool {
 }
 
 func (resp *ResponseWriter) WriteHeader(status int) {
+	resp.mu.Lock()
+	defer resp.mu.Unlock()
+
 	resp.HTTPStatus = status
 }
 
 func (resp *ResponseWriter) Write(b []byte) (n int, err error) {
+	resp.mu.Lock()
+	defer resp.mu.Unlock()
+
 	if !resp.headerSent {
 		resp.ResponseWriter.WriteHeader(resp.HTTPStatus)
 		resp.headerSent = true
