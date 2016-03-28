@@ -4,12 +4,10 @@ import (
 	"net/http"
 	"regexp"
 
-	"golang.org/x/net/context"
-
 	"github.com/altlinux/webery/pkg/ahttp"
-	"github.com/altlinux/webery/pkg/ahttp/acontext"
 	"github.com/altlinux/webery/pkg/ahttp/middleware/db"
 	"github.com/altlinux/webery/pkg/ahttp/middleware/jsonresponse"
+	"github.com/altlinux/webery/pkg/context"
 )
 
 type apiEndpointsInfo int
@@ -153,7 +151,7 @@ func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 			p.Set(name, match[i])
 		}
 
-		ctx = acontext.WithValue(ctx, ContextQueryParams, &p)
+		ctx = context.WithValue(ctx, ContextQueryParams, &p)
 
 		var reqHandler ahttp.Handler
 

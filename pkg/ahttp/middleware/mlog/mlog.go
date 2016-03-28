@@ -5,9 +5,9 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"golang.org/x/net/context"
 
 	"github.com/altlinux/webery/pkg/ahttp"
+	"github.com/altlinux/webery/pkg/context"
 )
 
 func Handler(fn ahttp.Handler) ahttp.Handler {

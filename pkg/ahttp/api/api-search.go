@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"golang.org/x/net/context"
-
 	"github.com/altlinux/webery/pkg/ahttp"
+	"github.com/altlinux/webery/pkg/context"
 	"github.com/altlinux/webery/pkg/db"
 	"github.com/altlinux/webery/pkg/util"
 )

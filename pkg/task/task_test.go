@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"os"
 	"reflect"
 	"testing"
 
@@ -28,7 +27,7 @@ func TestMain(m *testing.M) {
 	dbi = storage.NewSession(cfg.Mongo)
 	defer dbi.Close()
 
-	os.Exit(m.Run())
+	m.Run()
 }
 
 func makeGoodTask() *Task {
@@ -106,6 +105,30 @@ func TestCheckExistence(t *testing.T) {
 
 	if err := json.Unmarshal(data, &task); err != nil {
 		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	if v, ok := task.TaskID.Get(); ok {
+		if v != int64(123456) {
+			t.Fatalf("Wrong TaskID: expect %v: got %v", 123456, v)
+		}
+	} else {
+		t.Fatalf("Defined field not found: %+v", task)
+	}
+
+	if !task.Try.IsDefined() {
+		t.Fatalf("Defined field not found: %+v", task)
+	}
+
+	if !task.Iter.IsDefined() {
+		t.Fatalf("Defined field not found: %+v", task)
+	}
+
+	if !task.State.IsDefined() {
+		t.Fatalf("Defined field not found: %+v", task)
+	}
+
+	if !task.Owner.IsDefined() {
+		t.Fatalf("Defined field not found: %+v", task)
 	}
 
 	if task.Shared.IsDefined() {

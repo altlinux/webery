@@ -5,18 +5,16 @@ import (
 	"net/http"
 	"testing"
 
-	"golang.org/x/net/context"
-
 	"github.com/altlinux/webery/pkg/ahttp"
-	"github.com/altlinux/webery/pkg/ahttp/acontext"
 	"github.com/altlinux/webery/pkg/ahttp/testresponse"
+	"github.com/altlinux/webery/pkg/context"
 )
 
 func TestInternalServerErrorHandler(t *testing.T) {
 	w := testresponse.NewResponseWriter()
 	r := &http.Request{}
 
-	ctx := acontext.NewContext(context.Background(), r)
+	ctx := context.Background()
 
 	ahttp.HTTPResponse(w, http.StatusInternalServerError, "Error!")
 	InternalServerErrorHandler(ctx, w, r)
@@ -34,7 +32,7 @@ func TestInternalServerErrorHandlerJSON(t *testing.T) {
 	w := ahttp.NewResponseWriter(p)
 	r := &http.Request{}
 
-	ctx := acontext.NewContext(context.Background(), r)
+	ctx := context.Background()
 
 	ahttp.HTTPResponse(w, http.StatusInternalServerError, "Error!")
 	InternalServerErrorHandler(ctx, w, r)
@@ -52,7 +50,7 @@ func TestNotFoundHandler(t *testing.T) {
 	w := ahttp.NewResponseWriter(p)
 	r := &http.Request{}
 
-	ctx := acontext.NewContext(context.Background(), r)
+	ctx := context.Background()
 
 	NotFoundHandler(ctx, w, r)
 
@@ -69,7 +67,7 @@ func TestNotAllowedHandler(t *testing.T) {
 	w := ahttp.NewResponseWriter(p)
 	r := &http.Request{}
 
-	ctx := acontext.NewContext(context.Background(), r)
+	ctx := context.Background()
 
 	NotAllowedHandler(ctx, w, r)
 

@@ -4,10 +4,9 @@ import (
 	"net/http"
 	"os"
 
-	"golang.org/x/net/context"
-
 	"github.com/altlinux/webery/pkg/ahttp"
 	"github.com/altlinux/webery/pkg/config"
+	"github.com/altlinux/webery/pkg/context"
 )
 
 func FileHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {

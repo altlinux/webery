@@ -5,11 +5,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"golang.org/x/net/context"
-
 	"github.com/altlinux/webery/pkg/acl"
 	"github.com/altlinux/webery/pkg/ahttp"
 	"github.com/altlinux/webery/pkg/config"
+	"github.com/altlinux/webery/pkg/context"
 	"github.com/altlinux/webery/pkg/db"
 )
 

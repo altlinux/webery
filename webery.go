@@ -7,15 +7,14 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"golang.org/x/net/context"
 
 	"github.com/altlinux/logfile-go"
 	"github.com/altlinux/pidfile-go"
 	"github.com/altlinux/webery/pkg/ahttp"
-	"github.com/altlinux/webery/pkg/ahttp/acontext"
 	"github.com/altlinux/webery/pkg/ahttp/api"
 	"github.com/altlinux/webery/pkg/ahttp/middleware/mlog"
 	"github.com/altlinux/webery/pkg/config"
+	"github.com/altlinux/webery/pkg/context"
 	"github.com/altlinux/webery/pkg/db"
 	storage "github.com/altlinux/webery/pkg/db/mongo"
 )
@@ -37,17 +36,12 @@ type Server struct {
 }
 
 func (s *Server) Handler(w http.ResponseWriter, req *http.Request) {
-	var (
-		ctx    context.Context
-		cancel context.CancelFunc
-	)
-	ctx, cancel = context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	ctx = acontext.NewContext(ctx, req)
-	ctx = acontext.WithValue(ctx, db.ContextSession, s.DB)
-	ctx = acontext.WithValue(ctx, config.ContextConfig, s.Cfg)
-	ctx = acontext.WithValue(ctx, api.ContextEndpointsInfo, api.Endpoints)
+	ctx = context.WithValue(ctx, db.ContextSession, s.DB)
+	ctx = context.WithValue(ctx, config.ContextConfig, s.Cfg)
+	ctx = context.WithValue(ctx, api.ContextEndpointsInfo, api.Endpoints)
 
 	mlog.Handler(api.Handler)(ctx, ahttp.NewResponseWriter(w), req)
 }

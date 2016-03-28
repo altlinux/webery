@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"golang.org/x/net/context"
-
+	"github.com/altlinux/webery/pkg/context"
 	"github.com/altlinux/webery/pkg/logger"
 )
 
@@ -34,7 +33,7 @@ func HTTPResponse(w http.ResponseWriter, status int, format string, args ...inte
 		resp.HTTPError = err
 	}
 
-	if 400 < status {
+	if 400 <= status {
 		logger.WithFieldsDepth(nil, 3).Error(err)
 	}
 	w.WriteHeader(status)

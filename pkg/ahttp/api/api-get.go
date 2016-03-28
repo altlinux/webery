@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"golang.org/x/net/context"
-
 	"github.com/altlinux/webery/pkg/ahttp"
+	"github.com/altlinux/webery/pkg/context"
 	"github.com/altlinux/webery/pkg/db"
 )
 

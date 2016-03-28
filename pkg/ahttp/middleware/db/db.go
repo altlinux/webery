@@ -3,10 +3,8 @@ package db
 import (
 	"net/http"
 
-	"golang.org/x/net/context"
-
 	"github.com/altlinux/webery/pkg/ahttp"
-	"github.com/altlinux/webery/pkg/ahttp/acontext"
+	"github.com/altlinux/webery/pkg/context"
 	"github.com/altlinux/webery/pkg/db"
 	"github.com/altlinux/webery/pkg/logger"
 )
@@ -25,7 +23,7 @@ func Handler(fn ahttp.Handler) ahttp.Handler {
 		}
 
 		sess := dbi.Copy()
-		ctx = acontext.WithValue(ctx, ContextRequestSession, sess)
+		ctx = context.WithValue(ctx, ContextRequestSession, sess)
 
 		fn(ctx, resp, req)
 

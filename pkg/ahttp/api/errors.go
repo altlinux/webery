@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"golang.org/x/net/context"
-
 	"github.com/altlinux/webery/pkg/ahttp"
 	"github.com/altlinux/webery/pkg/ahttp/middleware/jsonresponse"
+	"github.com/altlinux/webery/pkg/context"
 )
 
 func JSONHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {

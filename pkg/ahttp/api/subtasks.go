@@ -8,13 +8,13 @@ import (
 	"net/url"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/altlinux/webery/pkg/ahttp"
 	"github.com/altlinux/webery/pkg/config"
+	"github.com/altlinux/webery/pkg/context"
 	"github.com/altlinux/webery/pkg/db"
 	"github.com/altlinux/webery/pkg/subtask"
 	"github.com/altlinux/webery/pkg/util"
+	"github.com/altlinux/webery/pkg/logger"
 )
 
 func SubtaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -124,6 +124,7 @@ func SubtaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Re
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to read body: %s", err)
 		return
 	}
+	logger.WithFields(nil).Debugf("Incoming data: %s", string(msg))
 
 	t := subtask.New()
 	if err = json.Unmarshal(msg, t); err != nil {
@@ -132,6 +133,7 @@ func SubtaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Re
 	}
 
 	t.TimeCreate.Set(time.Now().Unix())
+	logger.WithFields(nil).Debugf("Incoming subtask: %+v", t)
 
 	if !writeSubTask(ctx, w, t) {
 		return
