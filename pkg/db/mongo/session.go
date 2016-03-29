@@ -1,6 +1,7 @@
 package mongo
 
 import (
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -11,6 +12,15 @@ import (
 	"github.com/altlinux/webery/pkg/config"
 	"github.com/altlinux/webery/pkg/db"
 )
+
+var mongoServerDebugRe = regexp.MustCompile(`^Ping for .* is [0-9][0-9]? ms$`)
+
+var mongoClusterDebugRe = regexp.MustCompile(`^` +
+  `(SYNC Starting full topology synchronization\.\.\.` +
+  `|SYNC Processing .*` +
+  `|SYNC Synchronization was complete \(got data from primary\)\.` +
+  `|SYNC Synchronization completed: [0-9]+ master\(s\) and [0-9]+ slave\(s\) alive\.` +
+  `)$`)
 
 type MongoSession struct {
 	*mgo.Session
@@ -37,13 +47,24 @@ func (l *mongoDBLogger) Output(calldepth int, s string) error {
 		file = file[idx+1:]
 	}
 
-	log.Infof("mongodb: %s:%d: %s", file, line, s)
+	debug := false
+	if file == "server.go" && mongoServerDebugRe.MatchString(s) {
+		debug = true
+	} else if file == "cluster.go" && mongoClusterDebugRe.MatchString(s) {
+		debug = true
+	}
+
+	if debug {
+		log.Debugf("mongodb: %s:%d: %s", file, line, s)
+	} else {
+		log.Infof("mongodb: %s:%d: %s", file, line, s)
+	}
 	return nil
 }
 
 func NewSession(conf config.Mongo) *MongoSession {
 	mgo.SetLogger(&mongoDBLogger{})
-	//	mgo.SetDebug(true)
+	mgo.SetDebug(false)
 
 	ss := &MongoSession{}
 
