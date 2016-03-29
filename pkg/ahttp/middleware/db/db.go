@@ -15,7 +15,7 @@ const ContextRequestSession dbKeyRequestSession = 0
 
 func Handler(fn ahttp.Handler) ahttp.Handler {
 	return func(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-		dbi, ok := ctx.Value(db.ContextSession).(db.Session)
+		dbi, ok := ctx.Value("app.database").(db.Session)
 
 		if !ok {
 			logger.NewEntry().WithFields(nil).Fatalf("Unable to obtain database session from context")

@@ -18,8 +18,6 @@ import (
 
 type cfgKeyConfig int
 
-const ContextConfig cfgKeyConfig = 0
-
 type CfgLogLevel struct {
 	logrus.Level
 }

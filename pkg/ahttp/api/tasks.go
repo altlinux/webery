@@ -20,7 +20,7 @@ import (
 )
 
 func TaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
+	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
 		return
@@ -55,13 +55,13 @@ func TaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request
 }
 
 func writeTask(ctx context.Context, w http.ResponseWriter, t *task.Task) bool {
-	st, ok := ctx.Value(db.ContextSession).(db.Session)
+	st, ok := ctx.Value("app.database").(db.Session)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain database from context")
 		return false
 	}
 
-	cfg, ok := ctx.Value(config.ContextConfig).(*config.Config)
+	cfg, ok := ctx.Value("app.config").(*config.Config)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain config from context")
 		return false
@@ -136,7 +136,7 @@ func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 }
 
 func TaskGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
+	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
 		return
@@ -154,13 +154,13 @@ func TaskGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request)
 }
 
 func TaskDeleteHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
+	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
 		return
 	}
 
-	st, ok := ctx.Value(db.ContextSession).(db.Session)
+	st, ok := ctx.Value("app.database").(db.Session)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain database from context")
 		return
@@ -186,13 +186,13 @@ func TaskDeleteHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 }
 
 func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
+	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
 		return
 	}
 
-	st, ok := ctx.Value(db.ContextSession).(db.Session)
+	st, ok := ctx.Value("app.database").(db.Session)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain database from context")
 		return

@@ -30,9 +30,9 @@ func (s *Server) Handler(w http.ResponseWriter, req *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	ctx = context.WithValue(ctx, db.ContextSession, s.DB)
-	ctx = context.WithValue(ctx, config.ContextConfig, s.Cfg)
-	ctx = context.WithValue(ctx, api.ContextEndpointsInfo, api.Endpoints)
+	ctx = context.WithValue(ctx, "app.database", s.DB)
+	ctx = context.WithValue(ctx, "app.config", s.Cfg)
+	ctx = context.WithValue(ctx, "http.endpoints", api.Endpoints)
 
 	mlog.Handler(api.Handler)(ctx, ahttp.NewResponseWriter(w), req)
 }

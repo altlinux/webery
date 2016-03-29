@@ -12,13 +12,13 @@ import (
 )
 
 func apiSearch(ctx context.Context, w http.ResponseWriter, r *http.Request, q []Query) {
-	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
+	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
 		return
 	}
 
-	st, ok := ctx.Value(db.ContextSession).(db.Session)
+	st, ok := ctx.Value("app.database").(db.Session)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain database from context")
 		return

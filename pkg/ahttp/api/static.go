@@ -10,7 +10,7 @@ import (
 )
 
 func FileHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	if cfg, ok := ctx.Value(config.ContextConfig).(*config.Config); ok {
+	if cfg, ok := ctx.Value("app.config").(*config.Config); ok {
 		path := r.URL.Path
 
 		if _, err := os.Stat(cfg.Content.Path + path); err != nil {

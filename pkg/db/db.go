@@ -5,10 +5,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-type dbKeySession int
-
-const ContextSession dbKeySession = 0
-
 var (
 	ErrNotFound = mgo.ErrNotFound
 	ErrCursor   = mgo.ErrCursor

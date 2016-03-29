@@ -10,12 +10,6 @@ import (
 	"github.com/altlinux/webery/pkg/context"
 )
 
-type apiEndpointsInfo int
-type apiQueryParams int
-
-const ContextEndpointsInfo apiEndpointsInfo = 0
-const ContextQueryParams apiQueryParams = 0
-
 type MethodHandlers map[string]ahttp.Handler
 
 type HandlerInfo struct {
@@ -129,7 +123,7 @@ var Endpoints *EndpointsInfo = &EndpointsInfo{
 }
 
 func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	info, ok := ctx.Value(ContextEndpointsInfo).(*EndpointsInfo)
+	info, ok := ctx.Value("http.endpoints").(*EndpointsInfo)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain API information from context")
 		InternalServerErrorHandler(ctx, w, r)
@@ -151,7 +145,7 @@ func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 			p.Set(name, match[i])
 		}
 
-		ctx = context.WithValue(ctx, ContextQueryParams, &p)
+		ctx = context.WithValue(ctx, "http.request.query.params", &p)
 
 		var reqHandler ahttp.Handler
 

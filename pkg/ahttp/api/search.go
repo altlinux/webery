@@ -12,7 +12,7 @@ import (
 )
 
 func SearchHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
+	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
 		return

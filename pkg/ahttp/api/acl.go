@@ -13,7 +13,7 @@ import (
 )
 
 func AclReposListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	if cfg, ok := ctx.Value(config.ContextConfig).(*config.Config); ok {
+	if cfg, ok := ctx.Value("app.config").(*config.Config); ok {
 		msg, err := json.Marshal(cfg.Builder.Repos)
 		if err != nil {
 			ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to marshal json: %v", err)
@@ -26,7 +26,7 @@ func AclReposListHandler(ctx context.Context, w http.ResponseWriter, r *http.Req
 }
 
 func AclListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
+	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
 		return
@@ -66,7 +66,7 @@ func AclListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request)
 }
 
 func AclGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	p, ok := ctx.Value(ContextQueryParams).(*url.Values)
+	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
 		return
