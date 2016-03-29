@@ -77,21 +77,6 @@ func writeTask(ctx context.Context, w http.ResponseWriter, t *task.Task) bool {
 		return false
 	}
 
-	if v, ok := t.Repo.Get(); ok {
-		if !util.InSliceString(v, cfg.Builder.Repos) {
-			ahttp.HTTPResponse(w, http.StatusBadRequest, "Unknown repo")
-			return false
-		}
-	} else {
-		ahttp.HTTPResponse(w, http.StatusBadRequest, "repo: mandatory field is not specified")
-		return false
-	}
-
-	if !t.Owner.IsDefined() {
-		ahttp.HTTPResponse(w, http.StatusBadRequest, "owner: mandatory field is not specified")
-		return false
-	}
-
 	if v, ok := t.State.Get(); ok {
 		if !util.InSliceString(v, cfg.Builder.TaskStates) {
 			ahttp.HTTPResponse(w, http.StatusBadRequest, "Unknown state")
@@ -112,12 +97,18 @@ func writeTask(ctx context.Context, w http.ResponseWriter, t *task.Task) bool {
 }
 
 func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	cfg, ok := ctx.Value("app.config").(*config.Config)
+	if !ok {
+		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain config from context")
+		return
+	}
+
 	msg, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to read body: %s", err)
 		return
 	}
-	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("Incoming data: %s", string(msg))
+	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("TaskCreateHandler: Request body: %s", string(msg))
 
 	t := task.New()
 	if err = json.Unmarshal(msg, t); err != nil {
@@ -126,7 +117,23 @@ func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	t.TimeCreate.Set(time.Now().Unix())
-	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("Incoming task: %+v", t)
+
+	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("TaskCreateHandler: Task: %+v", t)
+
+	if v, ok := t.Repo.Get(); ok {
+		if !util.InSliceString(v, cfg.Builder.Repos) {
+			ahttp.HTTPResponse(w, http.StatusBadRequest, "Unknown repo")
+			return
+		}
+	} else {
+		ahttp.HTTPResponse(w, http.StatusBadRequest, "repo: mandatory field is not specified")
+		return
+	}
+
+	if !t.Owner.IsDefined() {
+		ahttp.HTTPResponse(w, http.StatusBadRequest, "owner: mandatory field is not specified")
+		return
+	}
 
 	if !writeTask(ctx, w, t) {
 		return
@@ -209,6 +216,10 @@ func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
+
+	t.TaskID.Set(util.ToInt64(p.Get("task")))
+
+	t.TaskID.Readonly(true)
 	t.TimeCreate.Readonly(true)
 
 	msg, err := ioutil.ReadAll(r.Body)
@@ -216,11 +227,13 @@ func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to read body: %s", err)
 		return
 	}
+	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("TaskUpdateHandler: Request body: %s", string(msg))
 
 	if err = json.Unmarshal(msg, t); err != nil {
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Invalid JSON: %s", err)
 		return
 	}
+	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("TaskUpdateHandler: Task: %+v", t)
 
 	if !writeTask(ctx, w, t) {
 		return

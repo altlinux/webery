@@ -74,37 +74,24 @@ func writeSubTask(ctx context.Context, w http.ResponseWriter, t *subtask.SubTask
 	}
 
 	if v, ok := t.Type.Get(); ok {
-		if !util.InSliceString(v, cfg.Builder.SubTaskTypes) {
+		if len(v) > 0 && !util.InSliceString(v, cfg.Builder.SubTaskTypes) {
 			ahttp.HTTPResponse(w, http.StatusBadRequest, "Wrong value for 'type' field")
 			return false
 		}
 	}
 
 	if v, ok := t.Status.Get(); ok {
-		if !util.InSliceString(v, cfg.Builder.SubTaskStates) {
+		if len(v) > 0 && !util.InSliceString(v, cfg.Builder.SubTaskStates) {
 			ahttp.HTTPResponse(w, http.StatusBadRequest, "Wrong value for 'status' field")
 			return false
 		}
 	}
 
 	if v, ok := t.CopyRepo.Get(); ok {
-		if !util.InSliceString(v, cfg.Builder.Repos) {
+		if len(v) > 0 && !util.InSliceString(v, cfg.Builder.Repos) {
 			ahttp.HTTPResponse(w, http.StatusBadRequest, "Wrong value for 'copyrepo' field")
 			return false
 		}
-	}
-
-	if !t.Owner.IsDefined() {
-		ahttp.HTTPResponse(w, http.StatusBadRequest, "owner: mandatory field is not specified")
-		return false
-	}
-
-	if !t.Type.IsDefined() {
-		t.Type.Set("unknown")
-	}
-
-	if !t.Status.IsDefined() {
-		t.Status.Set("active")
 	}
 
 	if err := subtask.Write(st, t); err != nil {
@@ -119,12 +106,18 @@ func writeSubTask(ctx context.Context, w http.ResponseWriter, t *subtask.SubTask
 }
 
 func SubtaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	p, ok := ctx.Value("http.request.query.params").(*url.Values)
+	if !ok {
+		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain params from context")
+		return
+	}
+
 	msg, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to read body: %s", err)
 		return
 	}
-	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("Incoming data: %s", string(msg))
+	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("SubtaskCreateHandler: Request body: %s", string(msg))
 
 	t := subtask.New()
 	if err = json.Unmarshal(msg, t); err != nil {
@@ -132,8 +125,23 @@ func SubtaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	if !t.Owner.IsDefined() {
+		ahttp.HTTPResponse(w, http.StatusBadRequest, "owner: mandatory field is not specified")
+		return
+	}
+
+	if !t.Type.IsDefined() {
+		t.Type.Set("unknown")
+	}
+
+	if !t.Status.IsDefined() {
+		t.Status.Set("active")
+	}
+
+	t.TaskID.Set(util.ToInt64(p.Get("task")))
 	t.TimeCreate.Set(time.Now().Unix())
-	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("Incoming subtask: %+v", t)
+
+	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("SubtaskCreateHandler: SubTask: %+v", t)
 
 	if !writeSubTask(ctx, w, t) {
 		return
@@ -211,6 +219,12 @@ func SubtaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Re
 		}
 		return
 	}
+
+	t.TaskID.Set(util.ToInt64(p.Get("task")))
+	t.SubTaskID.Set(util.ToInt64(p.Get("subtask")))
+
+	t.TaskID.Readonly(true)
+	t.SubTaskID.Readonly(true)
 	t.TimeCreate.Readonly(true)
 
 	msg, err := ioutil.ReadAll(r.Body)
@@ -218,11 +232,13 @@ func SubtaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Re
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to read body: %s", err)
 		return
 	}
+	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("SubtaskUpdateHandler: Request body: %s", string(msg))
 
 	if err = json.Unmarshal(msg, t); err != nil {
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Invalid JSON: %s", err)
 		return
 	}
+	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("SubtaskUpdateHandler: SubTask: %+v", t)
 
 	if !writeSubTask(ctx, w, t) {
 		return
