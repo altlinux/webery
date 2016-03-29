@@ -4,36 +4,27 @@ import (
 	"net/http"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
-
 	"github.com/altlinux/webery/pkg/ahttp"
 	"github.com/altlinux/webery/pkg/context"
+	"github.com/altlinux/webery/pkg/logger"
 )
 
 func Handler(fn ahttp.Handler) ahttp.Handler {
 	return func(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
-		w, ok := resp.(*ahttp.ResponseWriter)
-
-		reqTime := time.Now()
+		ctx = context.WithValue(ctx, "http.request.method", req.Method)
+		ctx = context.WithValue(ctx, "http.request.remoteaddr", req.RemoteAddr)
+		ctx = context.WithValue(ctx, "http.request.length", req.ContentLength)
+		ctx = context.WithValue(ctx, "http.request.time", time.Now().String())
 
 		defer func() {
-			e := log.NewEntry(log.StandardLogger()).WithFields(log.Fields{
-				"timestop":  time.Now().String(),
-				"timestart": reqTime.String(),
-				"method":    req.Method,
-				"client":    req.RemoteAddr,
-				"reqlen":    req.ContentLength,
-			})
+			e := logger.GetHTTPEntry(ctx)
+			e = e.WithField("http.response.time", time.Now().String())
 
-			if ok {
-				e = e.WithField("resplen", w.ResponseLength)
-				e = e.WithField("status", w.HTTPStatus)
-
-				if w.HTTPStatus >= 500 {
-					e = e.WithField("error", w.HTTPError)
-				}
+			if w, ok := resp.(*ahttp.ResponseWriter); ok {
+				e = e.WithField("http.response.length", w.ResponseLength)
+				e = e.WithField("http.response.status", w.HTTPStatus)
+				e = e.WithField("http.response.error", w.HTTPError)
 			}
-
 			e.Info(req.URL)
 		}()
 

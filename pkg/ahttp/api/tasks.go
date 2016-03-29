@@ -117,7 +117,7 @@ func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to read body: %s", err)
 		return
 	}
-	logger.WithFields(nil).Debugf("Incoming data: %s", string(msg))
+	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("Incoming data: %s", string(msg))
 
 	t := task.New()
 	if err = json.Unmarshal(msg, t); err != nil {
@@ -126,7 +126,7 @@ func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	t.TimeCreate.Set(time.Now().Unix())
-	logger.WithFields(nil).Debugf("Incoming task: %+v", t)
+	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("Incoming task: %+v", t)
 
 	if !writeTask(ctx, w, t) {
 		return

@@ -124,7 +124,7 @@ func SubtaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Re
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to read body: %s", err)
 		return
 	}
-	logger.WithFields(nil).Debugf("Incoming data: %s", string(msg))
+	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("Incoming data: %s", string(msg))
 
 	t := subtask.New()
 	if err = json.Unmarshal(msg, t); err != nil {
@@ -133,7 +133,7 @@ func SubtaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Re
 	}
 
 	t.TimeCreate.Set(time.Now().Unix())
-	logger.WithFields(nil).Debugf("Incoming subtask: %+v", t)
+	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("Incoming subtask: %+v", t)
 
 	if !writeSubTask(ctx, w, t) {
 		return

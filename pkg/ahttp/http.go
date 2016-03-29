@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/altlinux/webery/pkg/context"
-	"github.com/altlinux/webery/pkg/logger"
 )
 
 type Handler func(context.Context, http.ResponseWriter, *http.Request)
@@ -33,8 +32,5 @@ func HTTPResponse(w http.ResponseWriter, status int, format string, args ...inte
 		resp.HTTPError = err
 	}
 
-	if 400 <= status {
-		logger.WithFieldsDepth(nil, 3).Error(err)
-	}
 	w.WriteHeader(status)
 }

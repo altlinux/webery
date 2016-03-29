@@ -18,7 +18,7 @@ func Handler(fn ahttp.Handler) ahttp.Handler {
 		dbi, ok := ctx.Value(db.ContextSession).(db.Session)
 
 		if !ok {
-			logger.WithFields(nil).Fatalf("Unable to obtain database session from context")
+			logger.NewEntry().WithFields(nil).Fatalf("Unable to obtain database session from context")
 			return
 		}
 
