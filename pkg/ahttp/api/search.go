@@ -22,6 +22,7 @@ func SearchHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) 
 		Query{
 			CollName: task.CollName,
 			Pattern:  db.QueryDoc{"search.key": db.QueryDoc{"$regex": "^" + p.Get("prefix")}},
+			Sort:     []string{"-taskid"},
 			Iterator: func(iter db.Iter) interface{} {
 				t := task.New()
 				if !iter.Next(t) {
@@ -33,6 +34,7 @@ func SearchHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) 
 		Query{
 			CollName: subtask.CollName,
 			Pattern:  db.QueryDoc{"search.key": db.QueryDoc{"$regex": "^" + p.Get("prefix")}},
+			Sort:     []string{"-taskid"},
 			Iterator: func(iter db.Iter) interface{} {
 				t := subtask.New()
 				if !iter.Next(t) {
