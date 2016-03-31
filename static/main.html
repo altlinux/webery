@@ -1,6 +1,6 @@
-<div class="container" ng-controller="SearchCtrl">
+<div class="container">
 	<div class="row">
-		<div class="col-md-12">
+		<div class="col-md-12" ng-controller="SearchCtrl">
 			<form method="POST" class="form">
 				<div class="form-group" ng-class="{'has-error': noResults}">
 					<div class="input-group col-md-12">
@@ -20,8 +20,8 @@
 						</div>
 					</div>
 				</div>
-			</div>
-		</form>
+			</form>
+		</div>
 	</div>
 	<div class="row">
 		<div class="col-md-6">
@@ -34,16 +34,6 @@
 				</ul>
 			</div>
 
-			<div class="well well-sm">
-				<h4>Builder tasks</h4>
-				<ul>
-					<li><a href="{{ GitAltUrl }}/tasks/index/">Recent tasks</a></li>
-					<li><a href="{{ GitAltUrl }}/tasks/archive/">Archived tasks</a></li>
-				</ul>
-			</div>
-		</div>
-
-		<div class="col-md-6">
 			<div class="well well-sm">
 				<h4>Sisyphus rebuild logs</h4>
 				<ul>
@@ -59,6 +49,26 @@
 					<li><a href="{{ GitAltUrl }}/beehive/stats/Sisyphus-x86_64/ftbfs-joined">Sisyphus x86-64 FTBFS database</a></li>
 				</ul>
 			</div>
+		</div>
+
+		<div ng-controller="ListStateCtrl">
+		<div class="col-md-6">
+			<div class="well well-sm">
+				<h4>Awaiting tasks</h4>
+				<ul class="list-group" ng-init="ListTaskByState('awaiting')">
+					<li class="list-group-item" ng-repeat="task in tasks['awaiting']" ng-include="task.include"></li>
+					<li class="list-group-item" ng-if="tasks['awaiting'].length == 0"><strong>Queue is empty</strong></li>
+				</ul>
+			</div>
+
+			<div class="well well-sm">
+				<h4>Building tasks</h4>
+				<ul class="list-group" ng-init="ListTaskByState('building')">
+					<li class="list-group-item" ng-repeat="task in tasks['building']" ng-include="task.include"></li>
+					<li class="list-group-item" ng-if="tasks['building'].length == 0"><strong>Queue is empty</strong></li>
+				</ul>
+			</div>
+		</div>
 		</div>
 	</div>
 </div>

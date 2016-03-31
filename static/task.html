@@ -1,14 +1,14 @@
 <div class="container" ng-controller="TaskCtrl">
-	<div class="page-header">
-		<h4>Task #{{ task.taskid }} for <i>{{ task.repo }}</i> by <a href="{{ GitAltUrl }}/people/{{ task.owner }}/packages/?o=age">{{ task.owner }}</a></h4>
+	<div class="page-header" ng-init="GetTask()">
+		<h4>Task <code>{{ task.taskid }}</code> for {{ task.repo }} by <a href="{{ GitAltUrl }}/people/{{ task.owner }}/packages/?o=age">{{ task.owner }}</a></h4>
 	</div>
 
 	<dl class="dl-horizontal">
 		<dt>Task status:</dt>
-		<!-- dd><span class="label label-{{ task.label }}">{{ task.State }}</span></dd -->
 		<dd>
-			<span ng-bind-html="task.testonly | convertTestonly"></span>
-			<span ng-bind-html="task.shared | convertShared"></span>
+			<span ng-bind-html="task.swift | convertBool:'swift'"></span>
+			<span ng-bind-html="task.testonly | convertBool:'test only'"></span>
+			<span ng-bind-html="task.shared | convertBool:'shared'"></span>
 			<span ng-bind-html="task.state | convertState"></span>
 		</dd>
 
@@ -18,37 +18,29 @@
 		<dt>Logs of iterations:<dt>
 		<dd>
 			<span ng-repeat="n in task.tries">
-				<a href="{{ GitAltUrl }}/tasks/{{ task.taskid }}/logs/events.{{ n }}.1.log">{{ n }}</a><span ng-show="!$last">,</span><span ng-show="$last">.</span>
+				<a href="{{ GitAltUrl }}/tasks/index/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/logs/events.{{ n }}.1.log">{{ n }}</a>&nbsp;</span>
 			</span>
-			<a href="{{ GitAltUrl }}/tasks/{{ task.taskid }}/logs/">
-				<small><i class="glyphicon glyphicon-folder-open"></i></small>
+			<a href="{{ GitAltUrl }}/tasks/index/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/logs/">
+				&nbsp;<small><i class="glyphicon glyphicon-folder-open"></i></small>
 			</a>
 		</dd>
 	</dl>
 
-	<table class="table table-stripedd table-bordered">
-		<tr>
-			<th colspan="6"><h4>Subtasks</h4></th>
-		</tr>
-		<tr>
-			<th>#</th>
-			<th>Source</th>
-			<th colspan="3">Build results</th>
-		</tr>
-		<tr
-			ng-repeat="subtask in subtasks"
-			ng-class="{'disable': !subtask.active}">
-			<td class="col-md-1">{{ subtask.subtaskid }}</td>
-			<td>
-				<a href="{{ subtask.SourceURL }}">{{ subtask.pkgname }} {{ subtask.tagname }}</a>
-			</td>
-			<td class="col-md-1">
-				<a ng-show="subtask.active && subtask.Built" href="{{ GitAltUrl }}/tasks/{{ task.taskid }}/build/{{ subtask.subtaskid }}/i586/log">i586</a>
-			</td>
-			<td class="col-md-1">
-				<a ng-show="subtask.active && subtask.Built" href="{{ GitAltUrl }}/tasks/{{ task.Taskid }}/build/{{ subtask.subtaskid }}/x86_64/log">x86_64</a>
-			</td>
-		</tr>
-</table>
-
+	<div class="page-header">
+		<h4>Subtasks</h4>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<div class="row">
+				<div class="col-md-1"><b>№</b></div>
+				<div class="col-md-2"><b>Action</b></div>
+				<div class="col-md-7"><b>Source</b></div>
+				<div class="col-md-2"><b>Build results</b></div>
+			</div>
+		</div>
+		<ul class="list-group">
+			<li class="list-group-item" ng-repeat="subtask in subtasks" ng-class="{'disable': !subtask.active}" ng-include="subtask.include"></li>
+			<li class="list-group-item" ng-if="subtasks.length == 0"><strong>Nothing here yet ...</strong></li>
+		</ul>
+	</div>
 </div>

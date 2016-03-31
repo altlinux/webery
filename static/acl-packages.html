@@ -1,5 +1,5 @@
 <div class="container" ng-controller="AclSearchCtrl">
-	<div class="row">
+	<div class="row" ng-init="GetRepos()">
 		<div class="col-md-12">
 			<form method="POST" class="form">
 				<div class="form-group" ng-class="{'has-error': noResults}">

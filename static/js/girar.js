@@ -26,6 +26,9 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 			.when('/suggestion', {
 				controller: 'SuggestionCtrl',
 			})
+			.when('/list', {
+				controller: 'ListStateCtrl',
+			})
 			.when('/main', {
 				templateUrl: '/main.html',
 				controller: 'SearchCtrl',
@@ -63,25 +66,24 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 				return "";
 		}
 		var out = '<span class="label label-' + label + '">' + state + '</span>';
-		return $sce.trustAsHtml(out)
+		return $sce.trustAsHtml(out);
 	};
 })
-.filter('convertShared', function ($sce) {
-	return function (value) {
+.filter('convertBool', function ($sce) {
+	return function (value,arg) {
 		var out = "";
 		if (value === true) {
-			out = '<span class="label label-default">shared</span>';
+			out = '<span class="label label-default">'+arg+'</span>';
 		}
-		return $sce.trustAsHtml(out)
+		return $sce.trustAsHtml(out);
 	};
 })
-.filter('convertTestonly', function ($sce) {
+.filter('firstLetter', function () {
 	return function (value) {
-		var out = "";
-		if (value === true) {
-			out = '<span class="label label-default">test only</span>';
+		if (value != null) {
+			return value.charAt(0);
 		}
-		return $sce.trustAsHtml(out)
+		return '';
 	};
 })
 .directive('focusItem', function($timeout) {
@@ -168,11 +170,45 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 		$location.url(item.url);
 	};
 }])
+.controller('ListStateCtrl', ['$scope', '$http', function($scope, $http) {
+	$scope.tasks = {
+		awaiting: [],
+		building: []
+	};
+	$scope.ListTaskByState = function(val) {
+		return $http.get('/api/v1/tasks', {
+			params: {
+				state: val,
+				limit: 10
+			}
+		}).then(function(response) {
+			if (!response.data.data) {
+				return [];
+			}
+
+			$scope.tasks[val] = response.data.data.result.map(function(item) {
+				item.url = "/task/" + item.taskid;
+				item.include = "list-task-" + val + ".html";
+				return item;
+			}).sort(function (a, b) {
+				if (a.taskid < b.taskid) {
+					return 1;
+				}
+				if (a.taskid > b.taskid) {
+					return -1;
+				}
+				return 0;
+			});
+		});
+	};
+}])
 .controller('TaskCtrl', ['$routeParams', '$scope', '$rootScope', '$http', function($routeParams, $scope, $rootScope, $http) {
 	this.name = "TaskCtrl";
 	this.params = $routeParams;
 
-	getTask = function(taskid) {
+	$scope.GetTask = function() {
+		var taskid = $routeParams.taskId;
+
 		return $http.get('/api/v1/tasks/' + taskid, {}).then(function(response) {
 			$scope.task     = response.data.data.result;
 			$scope.task.tries = [];
@@ -187,31 +223,19 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 					if (item.status === 'cancelled') {
 						return;
 					}
-					item.active = (item.status === 'active');
-					switch (item.type) {
-						case "delete":
-						case "copy":
-							item.Built = false;
-							item.SourceURL = "" +
-								$rootScope.GitAltUrl + "/gears/" +
-								item.pkgname.charAt(0) + "/..git?p=" +
-								item.pkgname + ".git;a=shortlog;h=refs/heads/" +
-								$scope.task.repo;
-							break;
-						default:
-							item.Built = true;
-							item.SourceURL = "" +
-								$rootScope.GitAltUrl + "/tasks/" +
-								item.taskid + "/gears/" +
-								item.subtaskid + "/git";
+					if (item.pkgname === '' && item.dir !== '') {
+						var pos = item.dir.lastIndexOf("/");
+						if (pos !== -1) {
+							item.pkgname = item.dir.substring(pos+1);
+						}
 					}
-					$scope.subtasks.push(item)
+					item.active = (item.status === 'active');
+					item.include = "subtask-" + item.type + ".html";
+					$scope.subtasks.push(item);
 				});
 			});
 		});
 	};
-
-	getTask($routeParams.taskId);
 }])
 .controller('AclCtrl', ['$routeParams', '$scope', '$rootScope', '$http', function($routeParams, $scope, $rootScope, $http) {
 	$scope.cur_repo = "";
@@ -222,15 +246,13 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 		$scope.cur_repo = repo;
 	};
 
-	getRepos = function() {
+	$scope.GetRepos = function() {
 		return $http.get('/api/v1/acl/', {
 			params: {}
 		}).then(function(response) {
 			$scope.repos = response.data.data;
 		});
 	};
-
-	getRepos();
 }])
 .controller('AclInfoCtrl', ['$routeParams', '$scope', '$rootScope', '$http', function($routeParams, $scope, $rootScope, $http) {
 	if ($routeParams.type != "groups" && $routeParams.type != "packages") {
@@ -329,15 +351,13 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 		$location.url(item.url);
 	};
 
-	getRepos = function() {
+	$scope.GetRepos = function() {
 		return $http.get('/api/v1/acl/', {
 			params: {}
 		}).then(function(response) {
 			$scope.Repos = response.data.data;
 		});
 	};
-
-	getRepos();
 }])
 .controller('AclNobodyCtrl', ['$routeParams', '$scope', '$rootScope', '$http', function($routeParams, $scope, $rootScope, $http) {
 	$scope.Repo = $routeParams.repo || "sisyphus";

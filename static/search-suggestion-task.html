@@ -2,6 +2,7 @@
 	<div class="col-md-7">
 		<b ng-bind-html="match.model.taskid"></b>
 		for <span ng-bind-html="match.model.repo"></span>
+		<span ng-bind-html="match.model.state | convertState"></span>
 	</div>
 	<div class="col-md-5">
 		created at <span ng-bind-html="match.model.timecreate * 1000 | date:'yyyy-MM-dd'"></span>

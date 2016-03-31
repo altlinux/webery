@@ -1,0 +1,10 @@
+<a href="/task/{{ task.taskid }}">
+<div class="row">
+	<div class="col-md-12">
+		<code ng-bind-html="task.taskid"></code>
+		created at <span ng-bind-html="task.timecreate * 1000 | date:'yyyy-MM-dd'"></span>
+		by <span ng-bind-html="task.owner"></span>
+		for <span ng-bind-html="task.repo"></span>
+	</div>
+</div>
+</a>
