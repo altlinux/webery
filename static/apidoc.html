@@ -1,4 +1,456 @@
 <div class="container" ng-controller="ApiDocCtrl">
 	<h2>Git.Alt API v1</h2>
 	<p>The API accepts and returns data in JSON format.</p>
+<div class="panel panel-default">
+	<div class="panel-heading"><b>URL</b> <code>{schema}://{host}/api/v1/acl</code></div>
+	<div class="panel-body">
+		<ul class="list-group"><li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>GET</kbd></div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Shows the list of supported repositories</div>
+	</div>
+</li>
+		</ul>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading"><b>URL</b> <code>{schema}://{host}/api/v1/acl/{repo}/search/{type}</code></div>
+	<div class="panel-body">
+		<ul class="list-group"><li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>GET</kbd></div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Arguments</b></div>
+		<div class="col-md-10">
+			
+				<div class="row">
+					<div class="col-md-3"><code>repo=<b>&lbrace;string&rbrace;</b></code></div>
+					<div class="col-md-9">name of repository</div>
+				</div>
+			
+				<div class="row">
+					<div class="col-md-3"><code>type=<b>&lbrace;string&rbrace;</b></code></div>
+					<div class="col-md-9">type of the object. Can be &#39;package&#39; or &#39;group&#39;</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Returns list of all objects</div>
+	</div>
+</li>
+		</ul>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading"><b>URL</b> <code>{schema}://{host}/api/v1/acl/{repo}/{type}</code></div>
+	<div class="panel-body">
+		<ul class="list-group"><li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>GET</kbd></div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Arguments</b></div>
+		<div class="col-md-10">
+			
+				<div class="row">
+					<div class="col-md-3"><code>repo=<b>&lbrace;string&rbrace;</b></code></div>
+					<div class="col-md-9">name of repository</div>
+				</div>
+			
+				<div class="row">
+					<div class="col-md-3"><code>type=<b>&lbrace;string&rbrace;</b></code></div>
+					<div class="col-md-9">type of the object. Can be &#39;package&#39; or &#39;group&#39;</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Returns list of all objects</div>
+	</div>
+</li>
+		</ul>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading"><b>URL</b> <code>{schema}://{host}/api/v1/acl/{repo}/{type}/{name}</code></div>
+	<div class="panel-body">
+		<ul class="list-group"><li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>GET</kbd></div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Arguments</b></div>
+		<div class="col-md-10">
+			
+				<div class="row">
+					<div class="col-md-3"><code>repo=<b>&lbrace;string&rbrace;</b></code></div>
+					<div class="col-md-9">name of repository</div>
+				</div>
+			
+				<div class="row">
+					<div class="col-md-3"><code>type=<b>&lbrace;string&rbrace;</b></code></div>
+					<div class="col-md-9">type of the object. Can be &#39;package&#39; or &#39;group&#39;</div>
+				</div>
+			
+				<div class="row">
+					<div class="col-md-3"><code>name=<b>&lbrace;string&rbrace;</b></code></div>
+					<div class="col-md-9">name of object</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Shows the ACL for the specified name in the repository</div>
+	</div>
+</li>
+		</ul>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading"><b>URL</b> <code>{schema}://{host}/api/v1/search</code></div>
+	<div class="panel-body">
+		<ul class="list-group"><li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>GET</kbd></div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Parameters</b></div>
+		<div class="col-md-10">
+			
+				<div class="row">
+					<div class="col-md-3">prefix=<b>&lbrace;string or NaN&rbrace;</b></div>
+					<div class="col-md-9">filter objects by prefix</div>
+				</div>
+			
+				<div class="row">
+					<div class="col-md-3">limit=<b>&lbrace;number or 1000&rbrace;</b></div>
+					<div class="col-md-9">shows only specified number of retults</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Returns a list of tasks and subtasks</div>
+	</div>
+</li>
+		</ul>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading"><b>URL</b> <code>{schema}://{host}/api/v1/tasks</code></div>
+	<div class="panel-body">
+		<ul class="list-group"><li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>GET</kbd></div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Parameters</b></div>
+		<div class="col-md-10">
+			
+				<div class="row">
+					<div class="col-md-3">state=<b>&lbrace;string or NaN&rbrace;</b></div>
+					<div class="col-md-9">shows tasks with specified state</div>
+				</div>
+			
+				<div class="row">
+					<div class="col-md-3">owner=<b>&lbrace;string or NaN&rbrace;</b></div>
+					<div class="col-md-9">shows tasks with specified owner</div>
+				</div>
+			
+				<div class="row">
+					<div class="col-md-3">limit=<b>&lbrace;number or 1000&rbrace;</b></div>
+					<div class="col-md-9">shows only specified number of retults</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Returns a list of tasks</div>
+	</div>
+</li>
+<li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>POST</kbd></div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Creates new task</div>
+	</div>
+</li>
+		</ul>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading"><b>URL</b> <code>{schema}://{host}/api/v1/tasks/{taskid}</code></div>
+	<div class="panel-body">
+		<ul class="list-group"><li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>DELETE</kbd></div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Arguments</b></div>
+		<div class="col-md-10">
+			
+				<div class="row">
+					<div class="col-md-3"><code>taskid=<b>&lbrace;integer&rbrace;</b></code></div>
+					<div class="col-md-9">task number</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Removes specified task</div>
+	</div>
+</li>
+<li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>GET</kbd></div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Arguments</b></div>
+		<div class="col-md-10">
+			
+				<div class="row">
+					<div class="col-md-3"><code>taskid=<b>&lbrace;integer&rbrace;</b></code></div>
+					<div class="col-md-9">task number</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Returns information about specified task</div>
+	</div>
+</li>
+<li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>POST</kbd></div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Arguments</b></div>
+		<div class="col-md-10">
+			
+				<div class="row">
+					<div class="col-md-3"><code>taskid=<b>&lbrace;integer&rbrace;</b></code></div>
+					<div class="col-md-9">task number</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Updates existing task</div>
+	</div>
+</li>
+		</ul>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading"><b>URL</b> <code>{schema}://{host}/api/v1/tasks/{taskid}/subtasks</code></div>
+	<div class="panel-body">
+		<ul class="list-group"><li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>GET</kbd></div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Arguments</b></div>
+		<div class="col-md-10">
+			
+				<div class="row">
+					<div class="col-md-3"><code>taskid=<b>&lbrace;integer&rbrace;</b></code></div>
+					<div class="col-md-9">task number</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Parameters</b></div>
+		<div class="col-md-10">
+			
+				<div class="row">
+					<div class="col-md-3">limit=<b>&lbrace;number or 1000&rbrace;</b></div>
+					<div class="col-md-9">shows only specified number of retults</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Returns information about specified subtask</div>
+	</div>
+</li>
+<li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>POST</kbd></div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Arguments</b></div>
+		<div class="col-md-10">
+			
+				<div class="row">
+					<div class="col-md-3"><code>taskid=<b>&lbrace;integer&rbrace;</b></code></div>
+					<div class="col-md-9">task number</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Creates new subtask for specified task</div>
+	</div>
+</li>
+		</ul>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading"><b>URL</b> <code>{schema}://{host}/api/v1/tasks/{taskid}/subtasks/{subtaskid}</code></div>
+	<div class="panel-body">
+		<ul class="list-group"><li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>DELETE</kbd></div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Arguments</b></div>
+		<div class="col-md-10">
+			
+				<div class="row">
+					<div class="col-md-3"><code>taskid=<b>&lbrace;integer&rbrace;</b></code></div>
+					<div class="col-md-9">task number</div>
+				</div>
+			
+				<div class="row">
+					<div class="col-md-3"><code>subtaskid=<b>&lbrace;integer&rbrace;</b></code></div>
+					<div class="col-md-9">subtask number</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Removes subtask</div>
+	</div>
+</li>
+<li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>GET</kbd></div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Arguments</b></div>
+		<div class="col-md-10">
+			
+				<div class="row">
+					<div class="col-md-3"><code>taskid=<b>&lbrace;integer&rbrace;</b></code></div>
+					<div class="col-md-9">task number</div>
+				</div>
+			
+				<div class="row">
+					<div class="col-md-3"><code>subtaskid=<b>&lbrace;integer&rbrace;</b></code></div>
+					<div class="col-md-9">subtask number</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Creates new subtask for specified task</div>
+	</div>
+</li>
+<li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>POST</kbd></div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Arguments</b></div>
+		<div class="col-md-10">
+			
+				<div class="row">
+					<div class="col-md-3"><code>taskid=<b>&lbrace;integer&rbrace;</b></code></div>
+					<div class="col-md-9">task number</div>
+				</div>
+			
+				<div class="row">
+					<div class="col-md-3"><code>subtaskid=<b>&lbrace;integer&rbrace;</b></code></div>
+					<div class="col-md-9">subtask number</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">Updates subtask in task</div>
+	</div>
+</li>
+		</ul>
+	</div>
+</div>
 </div>

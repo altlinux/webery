@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"time"
 
-
 	"github.com/altlinux/webery/pkg/ahttp"
 	"github.com/altlinux/webery/pkg/config"
 	"github.com/altlinux/webery/pkg/context"
@@ -19,6 +18,17 @@ import (
 	"github.com/altlinux/webery/pkg/logger"
 )
 
+// :WEBAPI:
+// {
+//   "url": "{schema}://{host}/api/v1/tasks",
+//   "method": "GET",
+//   "description": "Returns a list of tasks",
+//   "parameters": [
+//     {"name": "state", "type": "string", "description": "shows tasks with specified state",       "default": "NaN"},
+//     {"name": "owner", "type": "string", "description": "shows tasks with specified owner",       "default": "NaN"},
+//     {"name": "limit", "type": "number", "description": "shows only specified number of retults", "default": "1000"}
+//   ]
+// }
 func TaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
@@ -96,6 +106,12 @@ func writeTask(ctx context.Context, w http.ResponseWriter, t *task.Task) bool {
 	return true
 }
 
+// :WEBAPI:
+// {
+//   "url": "{schema}://{host}/api/v1/tasks",
+//   "method": "POST",
+//   "description": "Creates new task"
+// }
 func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	cfg, ok := ctx.Value("app.config").(*config.Config)
 	if !ok {
@@ -142,6 +158,15 @@ func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	ahttp.HTTPResponse(w, http.StatusOK, "OK")
 }
 
+// :WEBAPI:
+// {
+//   "url": "{schema}://{host}/api/v1/tasks/{taskid}",
+//   "method": "GET",
+//   "arguments": [
+//     {"name": "taskid", "type": "integer", "description": "task number"}
+//   ],
+//   "description": "Returns information about specified task"
+// }
 func TaskGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
@@ -160,6 +185,15 @@ func TaskGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	})
 }
 
+// :WEBAPI:
+// {
+//   "url": "{schema}://{host}/api/v1/tasks/{taskid}",
+//   "method": "DELETE",
+//   "arguments": [
+//     {"name": "taskid", "type": "integer", "description": "task number"}
+//   ],
+//   "description": "Removes specified task"
+// }
 func TaskDeleteHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
@@ -192,6 +226,15 @@ func TaskDeleteHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	ahttp.HTTPResponse(w, http.StatusOK, "OK")
 }
 
+// :WEBAPI:
+// {
+//   "url": "{schema}://{host}/api/v1/tasks/{taskid}",
+//   "method": "POST",
+//   "arguments": [
+//     {"name": "taskid", "type": "integer", "description": "task number"}
+//   ],
+//   "description": "Updates existing task"
+// }
 func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {

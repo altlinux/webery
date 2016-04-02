@@ -12,6 +12,12 @@ import (
 	"github.com/altlinux/webery/pkg/db"
 )
 
+// :WEBAPI:
+// {
+//   "url": "{schema}://{host}/api/v1/acl",
+//   "method": "GET",
+//   "description": "Shows the list of supported repositories"
+// }
 func AclReposListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	if cfg, ok := ctx.Value("app.config").(*config.Config); ok {
 		msg, err := json.Marshal(cfg.Builder.Repos)
@@ -25,6 +31,26 @@ func AclReposListHandler(ctx context.Context, w http.ResponseWriter, r *http.Req
 	ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain config from context")
 }
 
+// :WEBAPI:
+// {
+//   "url": "{schema}://{host}/api/v1/acl/{repo}/search/{type}",
+//   "method": "GET",
+//   "arguments": [
+//     {"name": "repo", "type": "string", "description": "name of repository"},
+//     {"name": "type", "type": "string", "description": "type of the object. Can be 'package' or 'group'"}
+//   ],
+//   "description": "Returns list of all objects"
+// }
+// :WEBAPI:
+// {
+//   "url": "{schema}://{host}/api/v1/acl/{repo}/{type}",
+//   "method": "GET",
+//   "arguments": [
+//     {"name": "repo", "type": "string", "description": "name of repository"},
+//     {"name": "type", "type": "string", "description": "type of the object. Can be 'package' or 'group'"}
+//   ],
+//   "description": "Returns list of all objects"
+// }
 func AclListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
@@ -65,6 +91,17 @@ func AclListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	})
 }
 
+// :WEBAPI:
+// {
+//   "url": "{schema}://{host}/api/v1/acl/{repo}/{type}/{name}",
+//   "method": "GET",
+//   "arguments": [
+//     {"name": "repo", "type": "string", "description": "name of repository"},
+//     {"name": "type", "type": "string", "description": "type of the object. Can be 'package' or 'group'"},
+//     {"name": "name", "type": "string", "description": "name of object"}
+//   ],
+//   "description": "Shows the ACL for the specified name in the repository"
+// }
 func AclGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {

@@ -1,0 +1,36 @@
+<li class="list-group-item">
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Method</b></div>
+		<div class="col-md-10"><kbd>{{.Method}}</kbd></div>
+	</div>
+	{{if .Arguments}}
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Arguments</b></div>
+		<div class="col-md-10">
+			{{range .Arguments}}
+				<div class="row">
+					<div class="col-md-3"><code>{{.Name}}=<b>&lbrace;{{.Type}}&rbrace;</b></code></div>
+					<div class="col-md-9">{{.Description}}</div>
+				</div>
+			{{end}}
+		</div>
+	</div>
+	{{end}}
+	{{if .Parameters}}
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Parameters</b></div>
+		<div class="col-md-10">
+			{{range .Parameters}}
+				<div class="row">
+					<div class="col-md-3">{{.Name}}=<b>&lbrace;{{.Type}} or {{.Default}}&rbrace;</b></div>
+					<div class="col-md-9">{{.Description}}</div>
+				</div>
+			{{end}}
+		</div>
+	</div>
+	{{end}}
+	<div class="row">
+		<div class="col-md-2 text-right"><b>Description</b></div>
+		<div class="col-md-10">{{.Description}}</div>
+	</div>
+</li>

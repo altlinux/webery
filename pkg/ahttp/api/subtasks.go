@@ -17,6 +17,18 @@ import (
 	"github.com/altlinux/webery/pkg/logger"
 )
 
+// :WEBAPI:
+// {
+//   "url": "{schema}://{host}/api/v1/tasks/{taskid}/subtasks",
+//   "method": "GET",
+//   "arguments": [
+//     {"name": "taskid", "type": "integer", "description": "task number"}
+//   ],
+//   "parameters": [
+//     {"name": "limit", "type": "number", "description": "shows only specified number of retults", "default": "1000"}
+//   ],
+//   "description": "Returns information about specified subtask"
+// }
 func SubtaskListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
@@ -105,6 +117,15 @@ func writeSubTask(ctx context.Context, w http.ResponseWriter, t *subtask.SubTask
 	return true
 }
 
+// :WEBAPI:
+// {
+//   "url": "{schema}://{host}/api/v1/tasks/{taskid}/subtasks",
+//   "method": "POST",
+//   "arguments": [
+//     {"name": "taskid", "type": "integer", "description": "task number"}
+//   ],
+//   "description": "Creates new subtask for specified task"
+// }
 func SubtaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
@@ -150,6 +171,16 @@ func SubtaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Re
 	ahttp.HTTPResponse(w, http.StatusOK, "OK")
 }
 
+// :WEBAPI:
+// {
+//   "url": "{schema}://{host}/api/v1/tasks/{taskid}/subtasks/{subtaskid}",
+//   "method": "GET",
+//   "arguments": [
+//     {"name": "taskid",    "type": "integer", "description": "task number"},
+//     {"name": "subtaskid", "type": "integer", "description": "subtask number"}
+//   ],
+//   "description": "Creates new subtask for specified task"
+// }
 func SubtaskGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
@@ -168,6 +199,16 @@ func SubtaskGetHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	})
 }
 
+// :WEBAPI:
+// {
+//   "url": "{schema}://{host}/api/v1/tasks/{taskid}/subtasks/{subtaskid}",
+//   "method": "DELETE",
+//   "arguments": [
+//     {"name": "taskid",    "type": "integer", "description": "task number"},
+//     {"name": "subtaskid", "type": "integer", "description": "subtask number"}
+//   ],
+//   "description": "Removes subtask"
+// }
 func SubtaskDeleteHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {
@@ -195,6 +236,16 @@ func SubtaskDeleteHandler(ctx context.Context, w http.ResponseWriter, r *http.Re
 	ahttp.HTTPResponse(w, http.StatusOK, "OK")
 }
 
+// :WEBAPI:
+// {
+//   "url": "{schema}://{host}/api/v1/tasks/{taskid}/subtasks/{subtaskid}",
+//   "method": "POST",
+//   "arguments": [
+//     {"name": "taskid",    "type": "integer", "description": "task number"},
+//     {"name": "subtaskid", "type": "integer", "description": "subtask number"}
+//   ],
+//   "description": "Updates subtask in task"
+// }
 func SubtaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value("http.request.query.params").(*url.Values)
 	if !ok {

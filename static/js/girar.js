@@ -104,29 +104,6 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 	this.$routeParams = $routeParams;
 }])
 .controller('ApiDocCtrl', ['$scope', function($scope) {
-	$scope.oneAtATime = true;
-	$scope.status = {};
-
-	$scope.toggle_open = function(i) {
-		var name = "group-" + i;
-		for (var prop in $scope.status) {
-			if (!$scope.status.hasOwnProperty(prop)) {
-				continue;
-			}
-			if (prop === name) {
-				continue;
-			}
-			$scope.status[prop] = false;
-		}
-		var old = $scope.status[name] || false;
-		$scope.status[name] = !old;
-	};
-
-	$scope.is_open = function(i) {
-		var name = "group-" + i;
-		return $scope.status[name] || false;
-	};
-
 }])
 .controller('SearchCtrl', ['$scope', '$location', '$http', function($scope, $location, $http) {
 	$scope.getResults = function(val) {
