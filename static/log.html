@@ -1,7 +1,6 @@
 <style>
 .log {
 	font-family: monospace;
-	white-space: pre-wrap;
 	padding: 5px;
 }
 .log-skipped:hover {
@@ -10,11 +9,16 @@
 }
 .ln {
 	border-right: 1px solid #aaa;
-	padding-right: 10px;
+	padding-left: 5px;
+	padding-right: 5px;
 }
 .lc {
 	width: 100%;
-	padding-left: 10px;
+	word-wrap: break-word !important;
+	word-break: break-all;
+	white-space: pre-wrap;
+	padding-left: 5px;
+	padding-right: 5px;
 }
 .lm {
 	background-color: #f7ecb5;
@@ -27,17 +31,17 @@
 	<a id="top"></a>
 	<div class="row">
 		<div class="col-md-offset-8 col-md-4 text-right">
-			<button ng-click="showBegin()" class="btn btn-default">Show first</button>
-			<button ng-click="showEnd()" class="btn btn-default">Show last</button>
+			<button ng-click="showBegin()" class="btn btn-default" ng-show="skipped" title="Show first"><i class="glyphicon glyphicon-arrow-up"></i></button>
+			<button ng-click="showEnd()" class="btn btn-default" title="Show last"><i class="glyphicon glyphicon-arrow-down"></i></button>
 		</div>
 	</div>
 	&nbsp;
 	<div class="row">
 		<div class="col-md-12">
-			<table class="col-md-12 well well-sm log" infinite-scroll="appendMore()">
+			<table class="container-fluid well well-sm log" infinite-scroll="appendMore()">
 				<tr ng-show="skipped">
 					<td class="ln">&nbsp;</td>
-					<td class="lc log-skipped text-center" ng-click="prependMore()">... Skipped ...</td>
+					<td class="lc col-md-12 log-skipped" ng-click="prependMore()">... Skipped ...</td>
 				</tr>
 				<tr ng-repeat="line in log track by $index" id="#L{{line.number}}">
 					<td class="ln text-right"><a name="L{{line.number}}" href="#L{{line.number}}">{{line.number}}</td>
