@@ -1,5 +1,5 @@
 <div class="container" ng-controller="TaskCtrl">
-	<div class="page-header" ng-init="GetTask()">
+	<div class="page-header">
 		<h4>Task <code>{{ task.taskid }}</code> for {{ task.repo }} by <a href="{{ GitAltUrl }}/people/{{ task.owner }}/packages/?o=age">{{ task.owner }}</a></h4>
 	</div>
 
@@ -18,7 +18,7 @@
 		<dt>Logs of iterations:<dt>
 		<dd>
 			<span ng-repeat="n in task.tries">
-				<a href="{{ GitAltUrl }}/tasks/index/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/logs/events.{{ n }}.1.log">{{ n }}</a>&nbsp;</span>
+				<a href="/log/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/logs/events.{{ n }}.1.log">{{ n }}</a>&nbsp;</span>
 			</span>
 			<a href="{{ GitAltUrl }}/tasks/index/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/logs/">
 				&nbsp;<small><i class="glyphicon glyphicon-folder-open"></i></small>

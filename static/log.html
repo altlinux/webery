@@ -1,0 +1,54 @@
+<style>
+.log {
+	font-family: monospace;
+	white-space: pre-wrap;
+	padding: 5px;
+}
+.log-skipped:hover {
+	cursor: pointer;
+	background-color: #f9f9f9;
+}
+.ln {
+	border-right: 1px solid #aaa;
+	padding-right: 10px;
+}
+.lc {
+	width: 100%;
+	padding-left: 10px;
+}
+.lm {
+	background-color: #f7ecb5;
+}
+.le {
+	background-color: #e4b9b9;
+}
+</style>
+<div class="container" ng-controller="LogCtrl">
+	<a id="top"></a>
+	<div class="row">
+		<div class="col-md-offset-8 col-md-4 text-right">
+			<button ng-click="showBegin()" class="btn btn-default">Show first</button>
+			<button ng-click="showEnd()" class="btn btn-default">Show last</button>
+		</div>
+	</div>
+	&nbsp;
+	<div class="row">
+		<div class="col-md-12">
+			<table class="col-md-12 well well-sm log" infinite-scroll="appendMore()">
+				<tr ng-show="skipped">
+					<td class="ln">&nbsp;</td>
+					<td class="lc log-skipped text-center" ng-click="prependMore()">... Skipped ...</td>
+				</tr>
+				<tr ng-repeat="line in log track by $index" id="#L{{line.number}}">
+					<td class="ln text-right"><a name="L{{line.number}}" href="#L{{line.number}}">{{line.number}}</td>
+					<td class="lc" ng-class="{lm: line.select, le: line.error}">{{line.content}}</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-offset-10 col-md-2 text-right">
+			<button ng-click="gotoTop()" class="btn btn-link">Go to top</button>
+		</div>
+	</div>
+</div>

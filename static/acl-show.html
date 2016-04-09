@@ -1,19 +1,21 @@
-<div class="container" ng-show="Found">
-	<dl class="dl-horizontal well well-sm">
-		<dt>Repository</dt><dd>{{Repo}}</dd>
-		<dt>Name</dt><dd>{{Name}}</dd>
-
-		<dt>Members</dt>
-		<dd>
-			<span ng-repeat="member in Members">
-				<span ng-include="member.include"></span>
-			</span>
-			<span ng-include="MemberInclude"></span>
-		</dd>
-	</dl>
-</div>
-<div class="container" ng-show="NotFound">
-	<div role="alert" class="alert alert-danger">
-		'{{Name}}' not found in {{Repo}}!
+<div ng-controller="AclInfoCtrl">
+	<div class="container" ng-show="Found">
+		<dl class="dl-horizontal well well-sm">
+			<dt>Repository</dt><dd>{{Repo}}</dd>
+			<dt>Name</dt><dd>{{Name}}</dd>
+	
+			<dt>Members</dt>
+			<dd>
+				<span ng-repeat="member in Members">
+					<span ng-include="member.include"></span>
+				</span>
+				<span ng-include="MemberInclude"></span>
+			</dd>
+		</dl>
+	</div>
+	<div class="container" ng-show="NotFound">
+		<div role="alert" class="alert alert-danger">
+			'{{Name}}' not found in {{Repo}}!
+		</div>
 	</div>
 </div>

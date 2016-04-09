@@ -1,5 +1,5 @@
 <div class="container" ng-controller="AclSearchCtrl">
-	<div class="row" ng-init="GetRepos()">
+	<div class="row">
 		<div class="col-md-12">
 			<form method="POST" class="form">
 				<div class="form-group" ng-class="{'has-error': noResults}">
@@ -9,14 +9,14 @@
 								<button id="btn-append-to-body" type="button" class="btn btn-primary" uib-dropdown-toggle>
 									{{Repo}} <span class="caret"></span>
 								</button>
-								<ul class="uib-dropdown-menu" role="menu" aria-labelledby="btn-append-to-body">
+								<ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="btn-append-to-body">
 									<li role="menuitem" ng-repeat="choice in Repos">
 										<a href="#" ng-click="toggleRepo(choice)">{{choice}}</a>
 									</li>
 								</ul>
 							</div>
 						</div>
-						<input type="text" class="form-control" placeholder="Search for packages" focus-item
+						<input type="text" class="form-control" placeholder="Search for {{Type}}" focus-item
 							ng-model="asyncSelected"
 							uib-typeahead="result as result.name for result in getResults($viewValue)"
 							typeahead-on-select="showResult($item, $model, $label)"
@@ -27,8 +27,18 @@
 						<div class="input-group-addon" ng-show="loadingLocations">
 							<span class="glyphicon glyphicon-refresh"></span>
 						</div>
-						<div class="input-group-addon">
-							<span class="glyphicon glyphicon-search"></span>
+						<div class="input-group-btn">
+							<div class="btn-group" uib-dropdown dropdown-append-to-body>
+								<button id="btn-append-to-body" type="button" class="btn btn-primary" uib-dropdown-toggle>
+									{{Type}} <span class="caret"></span>
+								</button>
+								<ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="btn-append-to-body">
+									<li role="menuitem">
+										<a href="#" ng-click="toggleType('packages')">packages</a>
+										<a href="#" ng-click="toggleType('groups')">groups</a>
+									</li>
+								</ul>
+							</div>
 						</div>
 					</div>
 				</div>
