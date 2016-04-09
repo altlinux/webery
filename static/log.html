@@ -30,9 +30,10 @@
 <div class="container" ng-controller="LogCtrl">
 	<a id="top"></a>
 	<div class="row">
-		<div class="col-md-offset-8 col-md-4 text-right">
+		<div class="col-md-offset-4 col-md-8 text-right">
 			<button ng-click="showBegin()" class="btn btn-default" ng-show="skipped" title="Show first"><i class="glyphicon glyphicon-arrow-up"></i></button>
-			<button ng-click="showEnd()" class="btn btn-default" title="Show last"><i class="glyphicon glyphicon-arrow-down"></i></button>
+			<button ng-click="showEnd()" class="btn btn-default" ng-show="showend" title="Show last"><i class="glyphicon glyphicon-arrow-down"></i></button>
+			<a class="btn btn-default" target="_blank" href="/rawlog/{{url}}">Raw</a>
 		</div>
 	</div>
 	&nbsp;
@@ -44,7 +45,7 @@
 					<td class="lc col-md-12 log-skipped" ng-click="prependMore()">... Skipped ...</td>
 				</tr>
 				<tr ng-repeat="line in log track by $index" id="#L{{line.number}}">
-					<td class="ln text-right"><a name="L{{line.number}}" href="#L{{line.number}}">{{line.number}}</td>
+					<td class="ln text-right"><a name="L{{line.number}}" href="/log/{{url}}#L{{line.number}}">{{line.number}}</td>
 					<td class="lc" ng-class="{lm: line.select, le: line.error}">{{line.content}}</td>
 				</tr>
 			</table>

@@ -99,6 +99,7 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 	$scope.url = $routeParams.url || "";
 	$scope.log = [];
 	$scope.skipped = false;
+	$scope.showend = false;
 
 	linenumber = 0;
 	arr = [];
@@ -140,8 +141,10 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 	};
 
 	$scope.showEnd = function() {
-		$scope.skipped = true;
 		var i = arr.length - arrlimit;
+		if (i < 0) {
+			return;
+		}
 		$scope.log = [{
 			index:   i,
 			number:  i+1,
@@ -149,6 +152,7 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 			error:   isError(arr[i]),
 			content: arr[i]
 		}];
+		$scope.skipped = true;
 		$scope.appendMore();
 	};
 
@@ -196,6 +200,10 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 	}).then(function(response) {
 		arr = response.data.split('\n');
 
+		if (arr.length > arrlimit) {
+			$scope.showend = true;
+		}
+
 		var limit = arrlimit;
 		var pos = 0;
 
@@ -232,6 +240,7 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 			});
 			limit--;
 		}
+
 	},
 	function(reason) {
 		alert("Error: " + reason.statusText);
