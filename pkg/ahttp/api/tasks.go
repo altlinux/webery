@@ -22,7 +22,7 @@ import (
 // {
 //   "url": "{schema}://{host}/api/v1/tasks",
 //   "method": "GET",
-//   "description": "Returns a list of tasks",
+//   "description": "Returns list of tasks",
 //   "parameters": [
 //     {"name": "state", "type": "string", "description": "shows tasks with specified state",       "default": "NaN"},
 //     {"name": "owner", "type": "string", "description": "shows tasks with specified owner",       "default": "NaN"},

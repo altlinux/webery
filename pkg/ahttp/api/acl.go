@@ -16,7 +16,7 @@ import (
 // {
 //   "url": "{schema}://{host}/api/v1/acl",
 //   "method": "GET",
-//   "description": "Shows the list of supported repositories"
+//   "description": "Returns list of supported repositories"
 // }
 func AclReposListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	if cfg, ok := ctx.Value("app.config").(*config.Config); ok {
@@ -36,8 +36,8 @@ func AclReposListHandler(ctx context.Context, w http.ResponseWriter, r *http.Req
 //   "url": "{schema}://{host}/api/v1/acl/{repo}/search/{type}",
 //   "method": "GET",
 //   "arguments": [
-//     {"name": "repo", "type": "string", "description": "name of repository"},
-//     {"name": "type", "type": "string", "description": "type of the object. Can be 'package' or 'group'"}
+//     {"name": "repo", "type": "string", "description": "repository name"},
+//     {"name": "type", "type": "string", "description": "type of object, can be 'package' or 'group'"}
 //   ],
 //   "description": "Returns list of all objects"
 // }
@@ -46,8 +46,8 @@ func AclReposListHandler(ctx context.Context, w http.ResponseWriter, r *http.Req
 //   "url": "{schema}://{host}/api/v1/acl/{repo}/{type}",
 //   "method": "GET",
 //   "arguments": [
-//     {"name": "repo", "type": "string", "description": "name of repository"},
-//     {"name": "type", "type": "string", "description": "type of the object. Can be 'package' or 'group'"}
+//     {"name": "repo", "type": "string", "description": "repository name"},
+//     {"name": "type", "type": "string", "description": "type of object, can be 'package' or 'group'"}
 //   ],
 //   "description": "Returns list of all objects"
 // }
@@ -96,8 +96,8 @@ func AclListHandler(ctx context.Context, w http.ResponseWriter, r *http.Request)
 //   "url": "{schema}://{host}/api/v1/acl/{repo}/{type}/{name}",
 //   "method": "GET",
 //   "arguments": [
-//     {"name": "repo", "type": "string", "description": "name of repository"},
-//     {"name": "type", "type": "string", "description": "type of the object. Can be 'package' or 'group'"},
+//     {"name": "repo", "type": "string", "description": "repository name"},
+//     {"name": "type", "type": "string", "description": "type of object, can be 'package' or 'group'"},
 //     {"name": "name", "type": "string", "description": "name of object"}
 //   ],
 //   "description": "Shows the ACL for the specified name in the repository"

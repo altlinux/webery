@@ -19,7 +19,7 @@ import (
 //     {"name": "prefix", "type": "string", "description": "filter objects by prefix", "default": "NaN"},
 //     {"name": "limit",  "type": "number", "description": "shows only specified number of retults", "default": "1000"}
 //   ],
-//   "description": "Returns a list of tasks and subtasks"
+//   "description": "Returns list of tasks and subtasks"
 // }
 func SearchHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	p, ok := ctx.Value("http.request.query.params").(*url.Values)
