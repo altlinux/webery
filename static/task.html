@@ -3,44 +3,57 @@
 		<h4>Task <code>{{ task.taskid }}</code> for {{ task.repo }} by <a href="{{ GitAltUrl }}/people/{{ task.owner }}/packages/?o=age">{{ task.owner }}</a></h4>
 	</div>
 
-	<dl class="dl-horizontal">
-		<dt>Task status:</dt>
-		<dd>
-			<span ng-bind-html="task.swift | convertBool:'swift'"></span>
-			<span ng-bind-html="task.testonly | convertBool:'test only'"></span>
-			<span ng-bind-html="task.shared | convertBool:'shared'"></span>
-			<span ng-bind-html="task.state | convertState"></span>
-		</dd>
+	<div class="row">
+		<div class="col-md-12">
+			<dl class="dl-horizontal">
+				<dt>Task status:</dt>
+				<dd>
+					<span ng-bind-html="task.swift | convertBool:'swift'"></span>
+					<span ng-bind-html="task.testonly | convertBool:'test only'"></span>
+					<span ng-bind-html="task.shared | convertBool:'shared'"></span>
+					<span ng-bind-html="task.state | convertState"></span>
+				</dd>
 
-		<dt ng-show="task.timecreate">Created time:</dt>
-		<dd ng-show="task.timecreate">{{ task.timecreate * 1000 | date:'yyyy-MM-dd HH:mm' }}</dd>
+				<dt ng-show="task.timecreate">Created time:</dt>
+				<dd ng-show="task.timecreate">{{ task.timecreate * 1000 | date:'yyyy-MM-dd HH:mm' }}</dd>
 
-		<dt>Logs of iterations:<dt>
-		<dd>
-			<span ng-repeat="n in task.tries">
-				<a href="/log/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/logs/events.{{ n }}.1.log">{{ n }}</a>&nbsp;</span>
-			</span>
-			<a href="{{ GitAltUrl }}/tasks/index/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/logs/">
-				&nbsp;<small><i class="glyphicon glyphicon-folder-open"></i></small>
-			</a>
-		</dd>
-	</dl>
+				<dt>Logs of iterations:<dt>
+				<dd>
+					<span ng-repeat="n in task.tries">
+						<a href="/log/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/logs/events.{{ n }}.1.log">{{ n }}</a>&nbsp;</span>
+					</span>
+					<a href="{{ GitAltUrl }}/tasks/index/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/logs/">
+						&nbsp;<small><i class="glyphicon glyphicon-folder-open"></i></small>
+					</a>
+				</dd>
+
+				<dt ng-show="task.state == 'done'">Result:<dt>
+				<dd ng-show="task.state == 'done'">
+					<a href="/taskpkgs/{{task.repo}}/{{task.taskid}}">Packages</a>
+				</dd>
+			</dl>
+		</div>
+	</div>
 
 	<div class="page-header">
 		<h4>Subtasks</h4>
 	</div>
-	<div class="panel panel-default">
-		<div class="panel-heading">
-			<div class="row">
-				<div class="col-md-1"><b>№</b></div>
-				<div class="col-md-2"><b>Action</b></div>
-				<div class="col-md-7"><b>Source</b></div>
-				<div class="col-md-2"><b>Build results</b></div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<div class="row">
+						<div class="col-md-1"><b>№</b></div>
+						<div class="col-md-2"><b>Action</b></div>
+						<div class="col-md-7"><b>Source</b></div>
+						<div class="col-md-2"><b>Build results</b></div>
+					</div>
+				</div>
+				<ul class="list-group">
+					<li class="list-group-item" ng-repeat="subtask in subtasks" ng-class="{'disable': !subtask.active}" ng-include="subtask.include"></li>
+					<li class="list-group-item" ng-if="subtasks.length == 0"><strong>Nothing here yet ...</strong></li>
+				</ul>
 			</div>
 		</div>
-		<ul class="list-group">
-			<li class="list-group-item" ng-repeat="subtask in subtasks" ng-class="{'disable': !subtask.active}" ng-include="subtask.include"></li>
-			<li class="list-group-item" ng-if="subtasks.length == 0"><strong>Nothing here yet ...</strong></li>
-		</ul>
 	</div>
 </div>

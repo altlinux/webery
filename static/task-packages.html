@@ -1,0 +1,35 @@
+<div class="container" ng-controller="TackPkgsCtrl">
+	<div class="page-header">
+		Packages created by a task <a href="/task/{{taskid}}"><code>#{{taskid}}</code></a> for <b>{{repo}}</b>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<div class="row">
+						<div class="col-md-6"><b>Name</b></div>
+						<div class="col-md-3 text-right">
+							<span class="text-danger"><b>Removed</b></span>
+						</div>
+						<div class="col-md-3 text-left">&rarr;&nbsp;
+							<span class="text-success"><b>Added</b></span>
+						</div>
+					</div>
+				</div>
+				<ul class="list-group">
+					<li class="list-group-item" ng-repeat="(name,pkg) in pkgs">
+						<div class="row">
+							<div class="col-md-6">{{pkg.Name}}</div>
+							<div class="col-md-3 text-right">
+								<span class="text-danger">{{pkg.EVRs.removed || ""}}</span>
+							</div>
+							<div class="col-md-3 text-left">&rarr;&nbsp;
+								<span class="text-success">{{pkg.EVRs.added || ""}}</span>
+							</div>
+						</div>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>

@@ -5,6 +5,9 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 			.when('/task/:taskId', {
 				templateUrl: '/task.html',
 			})
+			.when('/taskpkgs/:repo/:taskId', {
+				templateUrl: '/task-packages.html',
+			})
 			.when('/acl/:repo/:type/:name', {
 				templateUrl: '/acl-show.html',
 			})
@@ -513,5 +516,49 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 	};
 
 	getPackages();
+}])
+.controller('TackPkgsCtrl', ['$scope', '$rootScope', '$routeParams', '$http', function($scope, $rootScope, $routeParams, $http) {
+	$scope.repo = $routeParams.repo;
+	$scope.taskid = $routeParams.taskId;
+	$scope.pkgs = {};
+
+	pkg = function(mode, name, evr) {
+		if (!$scope.pkgs[name]) {
+			$scope.pkgs[name] = {
+				Name: name
+			};
+		}
+		if (!$scope.pkgs[name].EVRs) {
+			$scope.pkgs[name].EVRs = {};
+		}
+		$scope.pkgs[name].EVRs[mode] = evr;
+	};
+
+	$http.get('/rawlog/'+$scope.repo+'/done/'+$scope.taskid+'/plan/add-bin', {
+		params: {},
+	}).then(function(response) {
+		var arr = response.data.split('\n');
+		for (var i = 0; i < arr.length; i++) {
+			var fields = arr[i].split('\t');
+			if (fields.length === 6) {
+				pkg("added", fields[0], fields[1]);
+			}
+		}
+	},
+	function(reason) {
+		alert("Error: " + reason.statusText);
+	});
+
+	$http.get('/rawlog/'+$scope.repo+'/done/'+$scope.taskid+'/plan/rm-bin', {
+		params: {},
+	}).then(function(response) {
+		var arr = response.data.split('\n');
+		for (var i = 0; i < arr.length; i++) {
+			var fields = arr[i].split('\t');
+			if (fields.length === 4) {
+				pkg("removed", fields[0], fields[1]);
+			}
+		}
+	});
 }])
 ;
