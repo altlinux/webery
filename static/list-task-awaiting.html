@@ -2,9 +2,10 @@
 <div class="row">
 	<div class="col-md-12">
 		<code ng-bind-html="task.taskid"></code>
-		created at <span ng-bind-html="task.timecreate * 1000 | date:'yyyy-MM-dd'"></span>
 		by <span ng-bind-html="task.owner"></span>
 		for <span ng-bind-html="task.repo"></span>
+		<span class="label label-info" ng-if="task.try > 1">try {{task.try}}</span>
+		<span class="label label-info" ng-if="task.iter > 1">iteration {{task.iter}}</span>
 	</div>
 </div>
 </a>
