@@ -92,6 +92,19 @@ func (c *Config) SetDefaults() *Config {
 	return c
 }
 
+func (c *Config) LoadEnv() *Config {
+	if v := os.Getenv("WEBERY_ADDRESS"); v != "" {
+		c.Global.Address = v
+	}
+	if v := os.Getenv("WEBERY_LOGFILE"); v != "" {
+		c.Global.Logfile = v
+	}
+	if v := os.Getenv("WEBERY_PIDFILE"); v != "" {
+		c.Global.Pidfile = v
+	}
+	return c
+}
+
 func (c *Config) ParseString(str string) error {
 	if err := gcfg.ReadStringInto(c, str); err != nil {
 		return err
@@ -119,6 +132,8 @@ func NewConfig(filename string) (*Config, error) {
 	if err := cfg.LoadString(string(buf)); err != nil {
 		return nil, err
 	}
+
+	cfg.LoadEnv()
 
 	return cfg, err
 }
