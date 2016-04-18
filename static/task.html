@@ -19,8 +19,8 @@
 
 				<dt>Logs of iterations:<dt>
 				<dd>
-					<span ng-repeat="n in task.tries">
-						<a href="/log/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/logs/events.{{ n }}.1.log">{{ n }}</a>&nbsp;</span>
+					<span ng-repeat="n in task.events">
+						<a href="/log/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/logs/events.{{ n }}.log">{{ n }}</a>&nbsp;</span>
 					</span>
 					<a href="{{ GitAltUrl }}/tasks/index/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/logs/">
 						&nbsp;<small><i class="glyphicon glyphicon-folder-open"></i></small>

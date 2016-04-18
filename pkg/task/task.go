@@ -6,19 +6,36 @@ import (
 	"github.com/altlinux/webery/pkg/db"
 	"github.com/altlinux/webery/pkg/jsontype"
 	kwd "github.com/altlinux/webery/pkg/keywords"
+	evtype "github.com/altlinux/webery/pkg/taskevents"
 )
 
 var (
 	CollName = "tasks"
 )
 
-type Task struct {
-	Search     kwd.Keywords         `json:"-"`
-	ObjType    jsontype.BaseString  `json:"objtype,omitempty"`
-	TimeCreate jsontype.Int64       `json:"timecreate,omitempty"`
+type TaskEvent struct {
 	TaskID     jsontype.Int64       `json:"taskid,omitempty"`
 	Try        jsontype.Int64       `json:"try,omitempty"`
 	Iter       jsontype.Int64       `json:"iter,omitempty"`
+	Owner      jsontype.LowerString `json:"owner,omitempty"`
+	State      jsontype.LowerString `json:"state,omitempty"`
+	Repo       jsontype.LowerString `json:"repo,omitempty"`
+	Aborted    jsontype.LowerString `json:"aborted,omitempty"`
+	Shared     jsontype.Bool        `json:"shared,omitempty"`
+	Swift      jsontype.Bool        `json:"swift,omitempty"`
+	TestOnly   jsontype.Bool        `json:"testonly,omitempty"`
+}
+
+func NewTaskEvent() *TaskEvent {
+	return &TaskEvent{}
+}
+
+type Task struct {
+	Search     kwd.Keywords         `json:"-"`
+	Events     *evtype.EventList    `json:"events,omitempty"`
+	ObjType    jsontype.BaseString  `json:"objtype,omitempty"`
+	TimeCreate jsontype.Int64       `json:"timecreate,omitempty"`
+	TaskID     jsontype.Int64       `json:"taskid,omitempty"`
 	Owner      jsontype.LowerString `json:"owner,omitempty"`
 	State      jsontype.LowerString `json:"state,omitempty"`
 	Repo       jsontype.LowerString `json:"repo,omitempty"`
@@ -33,6 +50,7 @@ func New() *Task {
 
 	t.ObjType.Set("task")
 	t.Search = kwd.NewKeywords()
+	t.Events = evtype.NewEventList()
 
 	return t
 }
@@ -83,6 +101,10 @@ func Write(st db.Session, t *Task) error {
 
 	if t.Search == nil {
 		t.Search = kwd.NewKeywords()
+	}
+
+	if t.Events == nil {
+		t.Events = evtype.NewEventList()
 	}
 
 	if t.TaskID.IsDefined() {

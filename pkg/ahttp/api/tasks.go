@@ -1,7 +1,7 @@
 package api
 
 import (
-	//	"fmt"
+	"fmt"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -126,11 +126,14 @@ func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	}
 	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("TaskCreateHandler: Request body: %s", string(msg))
 
-	t := task.New()
-	if err = json.Unmarshal(msg, t); err != nil {
+	ev := task.NewTaskEvent()
+	if err = json.Unmarshal(msg, ev); err != nil {
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Invalid JSON: %s", err)
 		return
 	}
+
+	t := task.New()
+	fillTask(t, ev)
 
 	t.TimeCreate.Set(time.Now().Unix())
 
@@ -248,6 +251,19 @@ func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	msg, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to read body: %s", err)
+		return
+	}
+	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("TaskUpdateHandler: Request body: %s", string(msg))
+
+	ev := task.NewTaskEvent()
+	if err = json.Unmarshal(msg, ev); err != nil {
+		ahttp.HTTPResponse(w, http.StatusBadRequest, "Invalid JSON: %s", err)
+		return
+	}
+
 	taskID := task.MakeID(util.ToInt64(p.Get("task")))
 
 	t, err := task.Read(st, taskID)
@@ -262,20 +278,7 @@ func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 
 	t.TaskID.Set(util.ToInt64(p.Get("task")))
 
-	t.TaskID.Readonly(true)
-	t.TimeCreate.Readonly(true)
-
-	msg, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to read body: %s", err)
-		return
-	}
-	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("TaskUpdateHandler: Request body: %s", string(msg))
-
-	if err = json.Unmarshal(msg, t); err != nil {
-		ahttp.HTTPResponse(w, http.StatusBadRequest, "Invalid JSON: %s", err)
-		return
-	}
+	fillTask(t, ev)
 	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("TaskUpdateHandler: Task: %+v", t)
 
 	if !writeTask(ctx, w, t) {
@@ -283,4 +286,40 @@ func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	ahttp.HTTPResponse(w, http.StatusOK, "OK")
+}
+
+func fillTask(t *task.Task, ev *task.TaskEvent) {
+	if v, ok := ev.Owner.Get(); ok {
+		t.Owner.Set(v)
+	}
+
+	if v, ok := ev.State.Get(); ok {
+		t.State.Set(v)
+	}
+
+	if v, ok := ev.Repo.Get(); ok {
+		t.Repo.Set(v)
+	}
+
+	if v, ok := ev.Aborted.Get(); ok {
+		t.Aborted.Set(v)
+	}
+
+	if v, ok := ev.Shared.Get(); ok {
+		t.Shared.Set(v)
+	}
+
+	if v, ok := ev.Swift.Get(); ok {
+		t.Swift.Set(v)
+	}
+
+	if v, ok := ev.TestOnly.Get(); ok {
+		t.TestOnly.Set(v)
+	}
+
+	if try, ok := ev.Try.Get(); ok {
+		if iter, ok := ev.Iter.Get(); ok {
+			t.Events.Append(fmt.Sprintf("%d.%d", try, iter))
+		}
+	}
 }
