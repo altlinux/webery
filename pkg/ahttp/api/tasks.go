@@ -278,6 +278,10 @@ func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 
 	t.TaskID.Set(util.ToInt64(p.Get("task")))
 
+	if !t.TimeCreate.IsDefined() {
+		t.TimeCreate.Set(time.Now().Unix())
+	}
+
 	fillTask(t, ev)
 	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("TaskUpdateHandler: Task: %+v", t)
 
