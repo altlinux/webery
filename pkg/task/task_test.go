@@ -34,8 +34,6 @@ func makeGoodTask() *Task {
 	goodTask := New()
 
 	goodTask.TaskID.Set(int64(123456))
-	goodTask.Try.Set(int64(0))
-	goodTask.Iter.Set(int64(1))
 	goodTask.State.Set("new")
 	goodTask.Repo.Set("sisyphus")
 	goodTask.Owner.Set("legion")
@@ -112,14 +110,6 @@ func TestCheckExistence(t *testing.T) {
 			t.Fatalf("Wrong TaskID: expect %v: got %v", 123456, v)
 		}
 	} else {
-		t.Fatalf("Defined field not found: %+v", task)
-	}
-
-	if !task.Try.IsDefined() {
-		t.Fatalf("Defined field not found: %+v", task)
-	}
-
-	if !task.Iter.IsDefined() {
 		t.Fatalf("Defined field not found: %+v", task)
 	}
 
