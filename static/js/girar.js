@@ -5,7 +5,7 @@ angular.module('girar', ['ngRoute', 'ngSanitize','ui.bootstrap','ui.chart','ui.b
 			.when('/task/:taskId', {
 				templateUrl: '/task.html',
 			})
-			.when('/taskpkgs/:repo/:taskId', {
+			.when('/taskpkgs/:repo/:state/:taskId', {
 				templateUrl: '/task-packages.html',
 			})
 			.when('/acl/:repo/:type/:name', {
@@ -537,6 +537,7 @@ angular.module('girar', ['ngRoute', 'ngSanitize','ui.bootstrap','ui.chart','ui.b
 .controller('TackPkgsCtrl', ['$scope', '$rootScope', '$routeParams', '$http', function($scope, $rootScope, $routeParams, $http) {
 	$scope.repo = $routeParams.repo;
 	$scope.taskid = $routeParams.taskId;
+	$scope.state = $routeParams.state;
 	$scope.pkgs = {};
 
 	pkg = function(mode, name, evr) {
@@ -551,7 +552,7 @@ angular.module('girar', ['ngRoute', 'ngSanitize','ui.bootstrap','ui.chart','ui.b
 		$scope.pkgs[name].EVRs[mode] = evr;
 	};
 
-	$http.get('/rawlog/'+$scope.repo+'/done/'+$scope.taskid+'/plan/add-bin', {
+	$http.get('/rawlog/'+$scope.repo+'/'+$scope.state+'/'+$scope.taskid+'/plan/add-bin', {
 		params: {},
 	}).then(function(response) {
 		var arr = response.data.split('\n');
@@ -566,7 +567,7 @@ angular.module('girar', ['ngRoute', 'ngSanitize','ui.bootstrap','ui.chart','ui.b
 		alert("Error: " + reason.statusText);
 	});
 
-	$http.get('/rawlog/'+$scope.repo+'/done/'+$scope.taskid+'/plan/rm-bin', {
+	$http.get('/rawlog/'+$scope.repo+'/'+$scope.state+'/'+$scope.taskid+'/plan/rm-bin', {
 		params: {},
 	}).then(function(response) {
 		var arr = response.data.split('\n');

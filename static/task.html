@@ -27,9 +27,9 @@
 					</a>
 				</dd>
 
-				<dt ng-show="task.state == 'done'">Result:<dt>
-				<dd ng-show="task.state == 'done'">
-					<a href="/taskpkgs/{{task.repo}}/{{task.taskid}}">Packages</a>
+				<dt ng-show="task.state == 'done' || task.state == 'tested'">Result:<dt>
+				<dd ng-show="task.state == 'done' || task.state == 'tested'">
+					<a href="/taskpkgs/{{task.repo}}/{{task.state}}/{{task.taskid}}">packages</a>
 				</dd>
 			</dl>
 		</div>
