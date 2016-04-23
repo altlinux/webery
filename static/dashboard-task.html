@@ -1,0 +1,7 @@
+<div class="col-md-12">
+	<a href="/task/{{task.taskid}}"><code>{{task.taskid}}</code></a> by
+	<span>{{task.owner}}</span> for
+	<span>{{task.repo || "unknown"}}</span>
+	<span class="label label-info" ng-if="task.try > 1">try {{task.try}}</span>
+	<span class="label label-info" ng-if="task.iter > 1">iteration {{task.iter}}</span>
+</div>

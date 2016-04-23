@@ -1,4 +1,4 @@
-angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','ui.bootstrap.typeahead','infinite-scroll'])
+angular.module('girar', ['ngRoute', 'ngSanitize','ui.bootstrap','ui.chart','ui.bootstrap.typeahead','infinite-scroll'])
 .config(['$routeProvider', '$locationProvider',
 	function($routeProvider, $locationProvider) {
 		$routeProvider
@@ -16,6 +16,9 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 			})
 			.when('/acl-nobody/:repo', {
 				templateUrl: '/acl-packages-nobody.html',
+			})
+			.when('/dashboard', {
+				templateUrl: '/dashboard.html',
 			})
 			.when('/acl', {
 				templateUrl: '/acl-search.html',
@@ -79,15 +82,51 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 		return '';
 	};
 })
-.directive('focusItem', function($timeout) {
-	return {
-		link: function(scope, element, attrs) {
-			scope.$watch(attrs.focusItem, function() {
-				element[0].focus();
-			});
-		}
+.factory('taskState', ['$http', function($http) {
+	var tasks = {
+		new:       [],
+		awaiting:  [],
+		building:  [],
+		pending:   [],
+		commiting: []
 	};
-})
+
+	list = function(val, limit) {
+		return $http.get('/api/v1/tasks', {
+			params: {
+				state: val,
+				limit: limit || 10
+			}
+		}).then(function(response) {
+			if (!response.data.data) {
+				return [];
+			}
+
+			tasks[val] = response.data.data.result.map(function(item) {
+				item.url = "/task/" + item.taskid;
+				item.include = "list-task-" + val + ".html";
+				return item;
+			}).sort(function (a, b) {
+				if (a.taskid < b.taskid) {
+					return 1;
+				}
+				if (a.taskid > b.taskid) {
+					return -1;
+				}
+				return 0;
+			});
+		});
+	};
+	
+	get = function() {
+		return tasks;
+	};
+
+	return {
+		  get:  get,
+		  list: list
+	};
+}])
 .controller('BodyCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
 	$rootScope.GitAltUrl = "//git.altlinux.org";
 }])
@@ -96,7 +135,13 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 	this.$location    = $location;
 	this.$routeParams = $routeParams;
 }])
-.controller('ApiDocCtrl', ['$scope', function($scope) {
+.controller('ApiDocCtrl', ['$rootScope', function($rootScope) {
+	$rootScope.setActive('apidoc');
+}])
+.controller('MenuCtrl', ['$rootScope', function($scope) {
+	var active = '';
+	$scope.isActive  = function(val) { return active === val; };
+	$scope.setActive = function(val) { active = val; };
 }])
 .controller('LogCtrl', ['$scope','$routeParams', '$http', '$location', '$anchorScroll', function($scope, $routeParams, $http, $location, $anchorScroll) {
 	$scope.url = $routeParams.url || "";
@@ -250,7 +295,9 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 		window.location = document.referrer;
 	});
 }])
-.controller('SearchCtrl', ['$scope', '$location', '$http', function($scope, $location, $http) {
+.controller('SearchCtrl', ['$scope','$rootScope', '$location', '$http', function($scope, $rootScope, $location, $http) {
+	$rootScope.setActive('main');
+
 	$scope.getResults = function(val) {
 		return $http.get('/api/v1/search', {
 			params: {
@@ -290,38 +337,6 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 	};
 	$scope.showResult = function(item, model, label) {
 		$location.url(item.url);
-	};
-}])
-.controller('ListStateCtrl', ['$scope', '$http', function($scope, $http) {
-	$scope.tasks = {
-		awaiting: [],
-		building: []
-	};
-	$scope.ListTaskByState = function(val) {
-		return $http.get('/api/v1/tasks', {
-			params: {
-				state: val,
-				limit: 10
-			}
-		}).then(function(response) {
-			if (!response.data.data) {
-				return [];
-			}
-
-			$scope.tasks[val] = response.data.data.result.map(function(item) {
-				item.url = "/task/" + item.taskid;
-				item.include = "list-task-" + val + ".html";
-				return item;
-			}).sort(function (a, b) {
-				if (a.taskid < b.taskid) {
-					return 1;
-				}
-				if (a.taskid > b.taskid) {
-					return -1;
-				}
-				return 0;
-			});
-		});
 	};
 }])
 .controller('TaskCtrl', ['$routeParams', '$scope', '$rootScope', '$http', function($routeParams, $scope, $rootScope, $http) {
@@ -414,7 +429,9 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 		}
 	}
 }])
-.controller('AclSearchCtrl', ['$routeParams', '$scope', '$location', '$http', function($routeParams, $scope, $location, $http) {
+.controller('AclSearchCtrl', ['$routeParams', '$scope', '$rootScope', '$location', '$http', function($routeParams, $scope, $rootScope, $location, $http) {
+	$rootScope.setActive('acl');
+
 	$scope.Type = $routeParams.type || "packages";
 	$scope.Repo = $routeParams.repo || "sisyphus";
 	$scope.Prefix = "";
@@ -560,5 +577,129 @@ angular.module('girar', ['ngRoute', 'ngSanitize','relativeDate','ui.bootstrap','
 			}
 		}
 	});
+}])
+.controller('DashBoardCtrl', ['$scope', '$rootScope', '$http', 'taskState', '$timeout', function($scope, $rootScope, $http, $taskState, $timeout) {
+	$rootScope.setActive('dashboard');
+
+	var defRepo = 'sisyphus';
+	var taskLimit = 1000000;
+	var updatePeriod = 60000;
+	var series  = ['awaiting', 'building', 'pending', 'committing'];
+
+	$scope.taskTemplate = "dashboard-task.html";
+	$scope.lastUpdate = 0;
+	$scope.data = [[0]];
+	$scope.chartOptions = {};
+
+	$scope.refresh = {
+		_graph:     false,
+		awaiting:   false,
+		building:   false,
+		pending:    false,
+		committing: false
+	};
+
+	getQueue = function() {
+		return $http.get('/api/unversioned/statistic/queue', {
+			params: {}
+		}).then(function(response) {
+			var res = response.data.data.result;
+
+			var width = $('#chart').width();
+			var rendererOptions = {};
+			var repos = [];
+			
+			Object.keys(res).sort(function(a, b) {
+				if (a === defRepo) {
+					return -1;
+				}
+				return b.localeCompare(a);
+			}).forEach(function(repoE) {
+				if (repos.length >= 1) {
+					var sum = 0;
+
+					series.forEach(function(seriesE) {
+						sum += res[repoE][seriesE];
+					});
+
+					if (sum === 0) {
+						return;
+					}
+				}
+				repos.push(repoE);
+			});
+
+			if (repos.length < 4) {
+				rendererOptions.barWidth = Math.round(((width / 3) * 20) / 100);
+			}
+
+			var plotSeries = [];
+			$scope.data = [];
+
+			series.forEach(function(seriesE, seriesI) {
+				$scope.data[seriesI] = [];
+				plotSeries[seriesI] = {label: seriesE};
+			});
+
+			repos.forEach(function(repoE, repoI) {
+				series.forEach(function(seriesE, seriesI) {
+					  $scope.data[seriesI][repoI] = res[repoE][seriesE];
+				});
+			});
+
+			$scope.chartOptions = { 
+				seriesDefaults: {
+					renderer: $.jqplot.BarRenderer,
+					rendererOptions: rendererOptions,
+					pointLabels: {
+						show: true,
+						formatString: '%d'
+					}
+				},
+				series: plotSeries,
+				legend: {
+					show: true,
+					location: 'ne',
+					rowSpacing: '10px',
+					placement: 'outside'
+				},
+				axes: {
+					xaxis: {
+						renderer: $.jqplot.CategoryAxisRenderer,
+						ticks: repos
+					},
+					yaxis: {
+						tickInterval: 1
+					}
+				}
+		    };
+		});
+	};
+
+	refreshGraph = function() {
+		$scope.refresh['_graph'] = true;
+		$scope.lastUpdate = new Date();
+		$scope.tasks = $taskState.get();
+
+		getQueue().then(function() {
+			$scope.refresh['_graph'] = false;
+		});
+
+		$timeout(refreshGraph, updatePeriod)
+	};
+
+	refreshTasks = function(state) {
+		$scope.refresh[state] = true;
+		$taskState.list(state, taskLimit).then(function() {
+			$scope.refresh[state] = false;
+		});
+		$timeout(function() { refreshTasks(state) }, updatePeriod);
+	};
+
+	refreshGraph();
+
+	for (var i = 0; i < series.length; i++) {
+		refreshTasks(series[i]);
+	}
 }])
 ;
