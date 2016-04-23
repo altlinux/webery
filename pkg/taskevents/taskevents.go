@@ -18,6 +18,10 @@ func NewEventList() *EventList {
 	return &EventList{}
 }
 
+func (o EventList) Length() int {
+	return len(o.value)
+}
+
 func (o EventList) GetBSON() (interface{}, error) {
 	if !o.ok {
 		return nil, nil
