@@ -58,6 +58,8 @@ angular.module('girar', ['ngRoute', 'ngSanitize','ui.bootstrap','ui.chart','ui.b
 			case "commiting":
 				label = "info"
 				break;
+			case "delete":
+				break;
 			default:
 				return "";
 		}

@@ -3,6 +3,7 @@
 		<b ng-bind-html="match.model.taskid"></b>
 		for <span ng-bind-html="match.model.repo"></span>
 		<span ng-bind-html="match.model.state | convertState"></span>
+		<span class="label label-info" ng-if="match.model.events.length > 1">try {{match.model.events[match.model.events.length-1]}}</span>
 	</div>
 	<div class="col-md-5">
 		created at <span ng-bind-html="match.model.timecreate * 1000 | date:'yyyy-MM-dd'"></span>
