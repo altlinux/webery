@@ -124,7 +124,7 @@ func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to read body: %s", err)
 		return
 	}
-	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("TaskCreateHandler: Request body: %s", string(msg))
+	logger.GetHTTPEntry(ctx).WithFields(nil).Infof("TaskCreateHandler: Request body: %s", string(msg))
 
 	ev := task.NewTaskEvent()
 	if err = json.Unmarshal(msg, ev); err != nil {
@@ -137,7 +137,7 @@ func TaskCreateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 
 	t.TimeCreate.Set(time.Now().Unix())
 
-	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("TaskCreateHandler: Task: %+v", t)
+	logger.GetHTTPEntry(ctx).WithFields(nil).Infof("TaskCreateHandler: Task: %+v", t)
 
 	if v, ok := t.Repo.Get(); ok {
 		if !util.InSliceString(v, cfg.Builder.Repos) {
@@ -256,7 +256,7 @@ func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		ahttp.HTTPResponse(w, http.StatusBadRequest, "Unable to read body: %s", err)
 		return
 	}
-	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("TaskUpdateHandler: Request body: %s", string(msg))
+	logger.GetHTTPEntry(ctx).WithFields(nil).Infof("TaskUpdateHandler: Request body: %s", string(msg))
 
 	ev := task.NewTaskEvent()
 	if err = json.Unmarshal(msg, ev); err != nil {
@@ -283,7 +283,7 @@ func TaskUpdateHandler(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	fillTask(t, ev)
-	logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("TaskUpdateHandler: Task: %+v", t)
+	logger.GetHTTPEntry(ctx).WithFields(nil).Infof("TaskUpdateHandler: Task: %+v", t)
 
 	if !writeTask(ctx, w, t) {
 		return
