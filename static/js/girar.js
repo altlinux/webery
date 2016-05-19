@@ -349,8 +349,12 @@ angular.module('girar', ['ngRoute', 'ngSanitize','ui.bootstrap','ui.chart','ui.b
 		var taskid = $routeParams.taskId;
 
 		return $http.get('/api/v1/tasks/' + taskid, {}).then(function(response) {
-			$scope.task     = response.data.data.result;
+			$scope.task = response.data.data.result;
 			$scope.task.tries = [];
+			$scope.task.events.sort(function(a, b) {
+				return parseFloat(a) - parseFloat(b);
+			});
+
 			for (var i = $scope.task.try; i; i--) {
 				$scope.task.tries.push(i);
 			}
