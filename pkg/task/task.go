@@ -14,16 +14,16 @@ var (
 )
 
 type TaskEvent struct {
-	TaskID     jsontype.Int64       `json:"taskid,omitempty"`
-	Try        jsontype.Int64       `json:"try,omitempty"`
-	Iter       jsontype.Int64       `json:"iter,omitempty"`
-	Owner      jsontype.LowerString `json:"owner,omitempty"`
-	State      jsontype.LowerString `json:"state,omitempty"`
-	Repo       jsontype.LowerString `json:"repo,omitempty"`
-	Aborted    jsontype.LowerString `json:"aborted,omitempty"`
-	Shared     jsontype.Bool        `json:"shared,omitempty"`
-	Swift      jsontype.Bool        `json:"swift,omitempty"`
-	TestOnly   jsontype.Bool        `json:"testonly,omitempty"`
+	TaskID   jsontype.Int64       `json:"taskid,omitempty"`
+	Try      jsontype.Int64       `json:"try,omitempty"`
+	Iter     jsontype.Int64       `json:"iter,omitempty"`
+	Owner    jsontype.LowerString `json:"owner,omitempty"`
+	State    jsontype.LowerString `json:"state,omitempty"`
+	Repo     jsontype.LowerString `json:"repo,omitempty"`
+	Aborted  jsontype.LowerString `json:"aborted,omitempty"`
+	Shared   jsontype.Bool        `json:"shared,omitempty"`
+	Swift    jsontype.Bool        `json:"swift,omitempty"`
+	TestOnly jsontype.Bool        `json:"testonly,omitempty"`
 }
 
 func NewTaskEvent() *TaskEvent {

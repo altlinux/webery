@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"os"
-	//	"reflect"
 	"testing"
 
 	"gopkg.in/mgo.v2/bson"
@@ -16,9 +14,7 @@ import (
 	storage "github.com/altlinux/webery/pkg/db/dbtest"
 )
 
-var (
-	dbi db.Session
-)
+var dbi db.Session
 
 func TestMain(m *testing.M) {
 	flag.Parse()
@@ -28,7 +24,7 @@ func TestMain(m *testing.M) {
 	dbi = storage.NewSession(cfg.Mongo)
 	defer dbi.Close()
 
-	os.Exit(m.Run())
+	m.Run()
 }
 
 func makeGoodSubTask() *SubTask {

@@ -15,9 +15,7 @@ import (
 	storage "github.com/altlinux/webery/pkg/db/dbtest"
 )
 
-var (
-	dbi db.Session
-)
+var dbi db.Session
 
 func TestMain(m *testing.M) {
 	flag.Parse()
