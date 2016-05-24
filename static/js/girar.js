@@ -591,7 +591,7 @@ angular.module('girar', ['ngRoute', 'ngSanitize','ui.bootstrap','ui.chart','ui.b
 	var defRepo = 'sisyphus';
 	var taskLimit = 1000000;
 	var updatePeriod = 60000;
-	var series  = ['awaiting', 'building', 'pending', 'committing'];
+	var series  = ['awaiting', 'postponed', 'building', 'pending', 'committing'];
 
 	$scope.taskTemplate = "dashboard-task.html";
 	$scope.lastUpdate = 0;
@@ -601,6 +601,7 @@ angular.module('girar', ['ngRoute', 'ngSanitize','ui.bootstrap','ui.chart','ui.b
 	$scope.refresh = {
 		_graph:     false,
 		awaiting:   false,
+		postponed:  false,
 		building:   false,
 		pending:    false,
 		committing: false

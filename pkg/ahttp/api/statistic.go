@@ -11,7 +11,7 @@ import (
 	"github.com/altlinux/webery/pkg/task"
 )
 
-var taskStates = []string{"new", "awaiting", "building", "pending", "committing"}
+var taskStates = []string{"new", "awaiting", "postponed", "building", "pending", "committing"}
 
 func StatisticQueueHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	st, ok := ctx.Value("app.database").(db.Session)
@@ -37,7 +37,7 @@ func StatisticQueueHandler(ctx context.Context, w http.ResponseWriter, r *http.R
 	}
 
 	q := db.QueryDoc{
-		"state": db.QueryDoc{"$in": []string{"new", "awaiting", "building", "pending", "committing"}},
+		"state": db.QueryDoc{"$in": []string{"new", "awaiting", "postponed", "building", "pending", "committing"}},
 	}
 
 	col, err := st.Coll(task.CollName)
