@@ -25,16 +25,14 @@ func (ic *instanceContext) Value(key interface{}) interface{} {
 	return ic.Context.Value(key)
 }
 
-var background = &instanceContext{
-	Context: context.Background(),
-	id:      uuid.New(),
-}
-
 // Background returns a non-nil, empty Context. The background context
 // provides a single key, "instance.id" that is globally unique to the
-// process.
+// context.
 func Background() Context {
-	return background
+	return &instanceContext{
+		Context: context.Background(),
+		id:      uuid.New(),
+	}
 }
 
 type CancelFunc context.CancelFunc
