@@ -8,13 +8,6 @@ td.jqplot-table-legend {
 td.jqplot-table-legend-label {
 	padding-left: 2px;
 }
-.queue-header {
-	background-color: #f5f5f5;
-	border-top:    1px solid #e3e3e3;
-	border-bottom: 1px solid #e3e3e3;
-	margin-top:    10px;
-	margin-bottom: 10px;
-}
 </style>
 <div class="container" ng-controller="DashBoardCtrl">
 	<div class="row">
@@ -31,71 +24,80 @@ td.jqplot-table-legend-label {
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-md-3">
-			<div class="row queue-header">
-				<div class="col-md-12">
-					<h4>
+		<div class="list-group">
+			<div class="list-group-item">
+				<div class="row list-group-item-heading">
+					<div class="col-md-12">
 						Awaiting
 						<span class="badge" ng-if="tasks['awaiting'].length !== 0">{{tasks['awaiting'].length}}</span>
 						<small><span class="glyphicon glyphicon-refresh" ng-if="refresh['awaiting'] === true"></span></small>
-					</h4>
+					</div>
+				</div>
+				<div class="row" ng-repeat="task in tasks['awaiting']" ng-include="taskTemplate"></div>
+				<div class="row" ng-if="tasks['awaiting'].length === 0">
+					<div class="col-md-12">
+						<small><span class="text-muted">No tasks with this status</span></small>
+					</div>
 				</div>
 			</div>
-			<div class="row" ng-repeat="task in tasks['awaiting']" ng-include="taskTemplate"></div>
-			<div class="row" ng-if="tasks['awaiting'].length === 0">
-				<div class="col-md-12">
-					<small><span class="text-muted">No tasks with this status</span></small>
+			<div class="list-group-item">
+				<div class="row list-group-item-heading">
+					<div class="col-md-12">
+						Postponed
+						<span class="badge" ng-if="tasks['postponed'].length !== 0">{{tasks['postponed'].length}}</span>
+						<small><span class="glyphicon glyphicon-refresh" ng-if="refresh['postponed'] === true"></span></small>
+					</div>
+				</div>
+				<div class="row" ng-repeat="task in tasks['postponed']" ng-include="taskTemplate"></div>
+				<div class="row" ng-if="tasks['postponed'].length === 0">
+					<div class="col-md-12">
+						<small><span class="text-muted">No tasks with this status</span></small>
+					</div>
 				</div>
 			</div>
-		</div>
-		<div class="col-md-3">
-			<div class="row queue-header">
-				<div class="col-md-12">
-					<h4>
+			<div class="list-group-item">
+				<div class="row list-group-item-heading">
+					<div class="col-md-12">
 						Building
 						<span class="badge" ng-if="tasks['building'].length !== 0">{{tasks['building'].length}}</span>
 						<small><span class="glyphicon glyphicon-refresh" ng-if="refresh['building'] === true"></span></small>
-					</h4>
+					</div>
+				</div>
+				<div class="row" ng-repeat="task in tasks['building']" ng-include="taskTemplate"></div>
+				<div class="row" ng-if="tasks['building'].length === 0">
+					<div class="col-md-12">
+						<small><span class="text-muted">No tasks with this status</span></small>
+					</div>
 				</div>
 			</div>
-			<div class="row" ng-repeat="task in tasks['building']" ng-include="taskTemplate"></div>
-			<div class="row" ng-if="tasks['building'].length === 0">
-				<div class="col-md-12">
-					<small><span class="text-muted">No tasks with this status</span></small>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-3">
-			<div class="row queue-header">
-				<div class="col-md-12">
-					<h4>
+			<div class="list-group-item">
+				<div class="row list-group-item-heading">
+					<div class="col-md-12">
 						Pending
 						<span class="badge" ng-if="tasks['pending'].length !== 0">{{tasks['pending'].length}}</span>
 						<small><span class="glyphicon glyphicon-refresh" ng-if="refresh['pending'] === true"></span></small>
-					</h4>
+					</div>
+				</div>
+				<div class="row" ng-repeat="task in tasks['pending']" ng-include="taskTemplate"></div>
+				<div class="row" ng-if="tasks['pending'].length === 0">
+					<div class="col-md-12">
+						<small><span class="text-muted">No tasks with this status</span></small>
+					</div>
 				</div>
 			</div>
-			<div class="row" ng-repeat="task in tasks['pending']" ng-include="taskTemplate"></div>
-			<div class="row" ng-if="tasks['pending'].length === 0">
-				<div class="col-md-12">
-					<small><span class="text-muted">No tasks with this status</span></small>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-3">
-			<div class="row">
-				<div class="col-md-12 queue-header">
-					<h4>
+			<div class="list-group-item">
+				<div class="row list-group-item-heading">
+					<div class="col-md-12">
 						Committing
 						<span class="badge" ng-if="tasks['committing'].length !== 0">{{tasks['committing'].length}}</span>
 						<small><span class="glyphicon glyphicon-refresh" ng-if="refresh['committing'] === true"></span></small>
-					</h4>
+					</div>
 				</div>
-			</div>
-			<div class="row" ng-repeat="task in tasks['committing']" ng-include="taskTemplate"></div>
-			<div class="row" ng-if="tasks['committing'].length === 0">
-				<div class="col-md-12">
-					<small><span class="text-muted">No tasks with this status</span></small>
+				<div class="row" ng-repeat="task in tasks['committing']" ng-include="taskTemplate"></div>
+				<div class="row" ng-if="tasks['committing'].length === 0">
+					<div class="col-md-12">
+						<small><span class="text-muted">No tasks with this status</span></small>
+					</div>
 				</div>
 			</div>
 		</div>
