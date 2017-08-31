@@ -20,11 +20,22 @@ func Handler(fn ahttp.Handler) ahttp.Handler {
 			e := logger.GetHTTPEntry(ctx)
 			e = e.WithField("http.response.time", time.Now().String())
 
+			if err := recover(); err != nil {
+				e.Panicf("%s: %v", req.URL, err)
+				return
+			}
+
 			if w, ok := resp.(*ahttp.ResponseWriter); ok {
 				e = e.WithField("http.response.length", w.ResponseLength)
 				e = e.WithField("http.response.status", w.HTTPStatus)
 				e = e.WithField("http.response.error", w.HTTPError)
+
+				if w.HTTPStatus >= 400 {
+					e.Error(req.URL)
+					return
+				}
 			}
+
 			e.Info(req.URL)
 		}()
 
