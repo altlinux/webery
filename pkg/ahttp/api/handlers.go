@@ -26,8 +26,8 @@ type EndpointsInfo struct {
 var Endpoints *EndpointsInfo = &EndpointsInfo{
 	Endpoints: []HandlerInfo{
 		{
-			Regexp:          regexp.MustCompile("^/api/unversioned/statistic/queue?$"),
-			NeedDBHandler:   false,
+			Regexp:          regexp.MustCompile("^/api/unversioned/statistic/queue/?$"),
+			NeedDBHandler:   true,
 			NeedJSONHandler: true,
 			Handlers: MethodHandlers{
 				"GET": StatisticQueueHandler,
@@ -35,7 +35,7 @@ var Endpoints *EndpointsInfo = &EndpointsInfo{
 		},
 		{
 			Regexp:          regexp.MustCompile("^/api/v1/search/?$"),
-			NeedDBHandler:   false,
+			NeedDBHandler:   true,
 			NeedJSONHandler: true,
 			Handlers: MethodHandlers{
 				"GET": SearchHandler,
