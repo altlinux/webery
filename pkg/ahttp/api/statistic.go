@@ -8,6 +8,7 @@ import (
 	"github.com/altlinux/webery/pkg/config"
 	"github.com/altlinux/webery/pkg/context"
 	"github.com/altlinux/webery/pkg/db"
+	"github.com/altlinux/webery/pkg/logger"
 	"github.com/altlinux/webery/pkg/task"
 )
 
@@ -25,7 +26,6 @@ func StatisticQueueHandler(ctx context.Context, w http.ResponseWriter, r *http.R
 		ahttp.HTTPResponse(w, http.StatusInternalServerError, "Unable to obtain config from context")
 		return
 	}
-
 
 	ans := make(map[string]map[string]int64)
 
@@ -49,6 +49,7 @@ func StatisticQueueHandler(ctx context.Context, w http.ResponseWriter, r *http.R
 	iter := col.Find(q).Iter()
 	for {
 		if !ahttp.IsAlive(w) {
+			logger.GetHTTPEntry(ctx).WithFields(nil).Debugf("drop statistic answer because connection is not alive")
 			return
 		}
 
