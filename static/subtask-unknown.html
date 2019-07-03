@@ -1,7 +1,7 @@
 <div class="row">
 	<div class="col-md-1">{{ subtask.subtaskid }}</div>
 	<div class="col-md-2">unknwon</div>
-	<div class="col-md-7">
+	<div class="col-md-5">
 		<a href="{{ GitAltUrl }}/tasks/index/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/">unknown</a>
 	</div>
 	<div class="col-md-1">
@@ -9,5 +9,11 @@
 	</div>
 	<div class="col-md-1">
 		<a href="/log/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/build/{{ subtask.subtaskid }}/x86_64/log">x86_64</a>
+	</div>
+	<div class="col-md-1">
+		<a href="/log/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/build/{{ subtask.subtaskid }}/aarch64/log">aarch64</a>
+	</div>
+	<div class="col-md-1">
+		<a href="/log/{{ task.repo }}/{{ task.state }}/{{ task.taskid }}/build/{{ subtask.subtaskid }}/ppc64le/log">ppc64le</a>
 	</div>
 </div>
