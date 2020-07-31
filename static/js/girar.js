@@ -482,8 +482,6 @@ angular.module('girar', ['ngRoute', 'ngSanitize','ui.bootstrap','ui.chart','ui.b
 					item.include = "acl-show-" + item.type + ".html";
 				});
 				return item;
-			}).sort(function (a, b) {
-				return a.name.localeCompare(b.name);
 			});
 		});
 	};
